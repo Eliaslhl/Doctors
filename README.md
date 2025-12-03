@@ -37,35 +37,46 @@ Application web interactive développée avec **Dash** et **Plotly** pour la vis
 
 ```
 Doctors/
-├── main.py                 # Point d'entrée de l'application
-├── config.py              # Configuration globale
-├── requirements.txt       # Dépendances Python
-├── README.md             # Documentation
+├── main.py                      # Point d'entrée de l'application
+├── config.py                    # Configuration globale avec typing
+├── requirements.txt             # Dépendances Python
+├── README.md                    # Documentation principale
 │
-├── assets/               # Fichiers statiques
-│   ├── style.css        # Styles CSS personnalisés
+├── src/                         # Code source principal
+│   ├── app/                     # Module d'application
+│   │   ├── __init__.py
+│   │   ├── app_factory.py       # Factory pattern pour créer l'app Dash
+│   │   └── layout.py            # Layout principal
+│   │
+│   ├── components/              # Composants réutilisables
+│   │   ├── __init__.py
+│   │   ├── header.py            # Sidebar avec filtres
+│   │   ├── navbar.py            # Barre de navigation
+│   │   └── footer.py            # Pied de page
+│   │
+│   ├── pages/                   # Pages de l'application
+│   │   ├── __init__.py
+│   │   └── home.py              # Page d'accueil avec graphiques
+│   │
+│   ├── callbacks/               # Callbacks Dash centralisés
+│   │   ├── __init__.py
+│   │   └── callbacks.py         # Enregistrement de tous les callbacks
+│   │
+│   └── utils/                   # Utilitaires
+│       ├── __init__.py
+│       └── data_loader.py       # Chargement et génération de données
+│
+├── assets/                      # Ressources statiques
+│   ├── style.css                # Styles CSS
 │   └── .gitkeep
 │
-├── data/                 # Données (vos propres fichiers)
-│   ├── raw/             # Données brutes
-│   └── cleaned/         # Données nettoyées
+├── data/                        # Données
+│   ├── raw/                     # Données brutes
+│   ├── cleaned/                 # Données nettoyées
+│   └── .gitkeep
 │
-├── images/              # Images et ressources
-│
-└── src/                 # Code source
-    ├── components/      # Composants réutilisables
-    │   ├── __init__.py
-    │   ├── navbar.py   # Barre de navigation
-    │   ├── header.py   # En-tête
-    │   └── footer.py   # Pied de page
-    │
-    ├── pages/          # Pages de l'application
-    │   ├── __init__.py
-    │   ├── home.py     # Page d'accueil
-    │ 
-    │
-    └── utils/          # Fonctions utilitaires (vides - à remplir)
-        └── __init__.py
+└── images/                      # Images
+    └── .gitkeep
 ```
 
 ---

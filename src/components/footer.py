@@ -2,8 +2,8 @@ from dash import html
 from datetime import datetime
 
 
-def create_footer():
-    current_year = datetime.now().year
+def create_footer() -> html.Footer:
+    current_year: int = datetime.now().year
     
     return html.Footer([
         html.Div([

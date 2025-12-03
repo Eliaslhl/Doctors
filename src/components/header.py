@@ -1,12 +1,13 @@
+from typing import List
 from dash import html, dcc
+import pandas as pd
 
 
-def create_sidebar(data):
-    """
-    Crée une sidebar à gauche avec filtres globaux.
-    """
+def create_sidebar(data: pd.DataFrame) -> html.Div:
     # Extraire les années disponibles
-    years = sorted(data['YEAR'].unique()) if 'YEAR' in data.columns else []
+    years: List[int] = sorted(data['YEAR'].unique().tolist()) if 'YEAR' in data.columns else []
+    countries: List[str] = sorted(data['NAME'].unique().tolist()) if 'NAME' in data.columns else []
+    antigens: List[str] = sorted(data['ANTIGEN'].unique().tolist()) if 'ANTIGEN' in data.columns else []
     
     return html.Div([
         # Logo/Titre
@@ -46,7 +47,7 @@ def create_sidebar(data):
                         {'label': 'Tous les pays', 'value': 'all'}
                     ] + [
                         {'label': country, 'value': country} 
-                        for country in sorted(data['NAME'].unique()) if 'NAME' in data.columns
+                        for country in countries
                     ],
                     value='all',
                     clearable=False,
@@ -63,7 +64,7 @@ def create_sidebar(data):
                         {'label': 'Tous les antigènes', 'value': 'all'}
                     ] + [
                         {'label': antigen, 'value': antigen} 
-                        for antigen in sorted(data['ANTIGEN'].unique()) if 'ANTIGEN' in data.columns
+                        for antigen in antigens
                     ],
                     value='all',
                     clearable=False,

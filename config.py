@@ -1,20 +1,24 @@
 """
-Configuration de l'application Doctors Dashboard.
+Configuration globale de l'application Vaccination Coverage Dashboard.
+
+Ce module centralise toutes les configurations et constantes de l'application.
 """
 
 import os
 from pathlib import Path
+from typing import Dict, List, Any
+
 
 # ========================================
 # CHEMINS DE FICHIERS
 # ========================================
 
-BASE_DIR = Path(__file__).parent
-DATA_DIR = BASE_DIR / "data"
-RAW_DATA_DIR = DATA_DIR / "raw"
-CLEANED_DATA_DIR = DATA_DIR / "cleaned"
-ASSETS_DIR = BASE_DIR / "assets"
-IMAGES_DIR = BASE_DIR / "images"
+BASE_DIR: Path = Path(__file__).parent
+DATA_DIR: Path = BASE_DIR / "data"
+RAW_DATA_DIR: Path = DATA_DIR / "raw"
+CLEANED_DATA_DIR: Path = DATA_DIR / "cleaned"
+ASSETS_DIR: Path = BASE_DIR / "assets"
+IMAGES_DIR: Path = BASE_DIR / "images"
 
 
 # ========================================
@@ -22,9 +26,9 @@ IMAGES_DIR = BASE_DIR / "images"
 # ========================================
 
 # Configuration par défaut du serveur
-DEFAULT_HOST = "127.0.0.1"
-DEFAULT_PORT = 8050
-DEFAULT_DEBUG = False
+DEFAULT_HOST: str = "127.0.0.1"
+DEFAULT_PORT: int = 8050
+DEFAULT_DEBUG: bool = False
 
 
 # ========================================
@@ -32,11 +36,11 @@ DEFAULT_DEBUG = False
 # ========================================
 
 # Titre de l'application
-APP_TITLE = "Doctors Dashboard"
-APP_UPDATE_TITLE = "Chargement..."
+APP_TITLE: str = "Vaccination Coverage Dashboard"
+APP_UPDATE_TITLE: str = "Chargement..."
 
 # Suppression des exceptions de callback
-SUPPRESS_CALLBACK_EXCEPTIONS = True
+SUPPRESS_CALLBACK_EXCEPTIONS: bool = True
 
 
 # ========================================
@@ -44,7 +48,7 @@ SUPPRESS_CALLBACK_EXCEPTIONS = True
 # ========================================
 
 # Configuration par défaut de Plotly
-PLOTLY_CONFIG = {
+PLOTLY_CONFIG: Dict[str, Any] = {
     'displayModeBar': True,
     'displaylogo': False,
     'modeBarButtonsToRemove': ['pan2d', 'lasso2d', 'select2d'],
@@ -58,7 +62,7 @@ PLOTLY_CONFIG = {
 }
 
 # Palette de couleurs
-COLOR_PALETTE = [
+COLOR_PALETTE: List[str] = [
     '#3498db',  # Bleu
     '#e74c3c',  # Rouge
     '#2ecc71',  # Vert
@@ -70,13 +74,13 @@ COLOR_PALETTE = [
 ]
 
 # Template des graphiques
-PLOTLY_TEMPLATE = "plotly_white"
+PLOTLY_TEMPLATE: str = "plotly_white"
 
 # ========================================
 # MESSAGES
 # ========================================
 
-MESSAGES = {
+MESSAGES: Dict[str, str] = {
     'no_data': "Aucune donnée disponible",
     'loading': "Chargement en cours...",
     'error': "Une erreur s'est produite",

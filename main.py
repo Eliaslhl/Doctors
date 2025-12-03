@@ -1,178 +1,126 @@
 import argparse
-from dash import Dash, html
-import pandas as pd
-import numpy as np
+from typing import Dict, Any
 
-from src.pages.home import create_home_layout
-from src.components.navbar import create_navbar
-from src.components.footer import create_footer
-from src.components.header import create_sidebar
+import dash
+
+from src.app.layout import create_main_layout
+from src.callbacks.callbacks import register_all_callbacks
+from src.utils.data_loader import generate_sample_vaccination_data
 
 
-def load_sample_data():
+def parse_arguments() -> argparse.Namespace:
     """
-    Génère des données de vaccination simulées basées sur le format WHO.
+    Parse command line arguments.
+    
+    Returns:
+        Parsed command line arguments
     """
-    np.random.seed(42)
-
-    # Définition des paramètres (fausses données)
-    countries = [
-        ('ABW', 'Aruba'),
-        ('AFG', 'Afghanistan'),
-        ('AGO', 'Angola'),
-        ('ALB', 'Albania'),
-        ('AND', 'Andorra'),
-        ('ARE', 'United Arab Emirates'),
-        ('ARG', 'Argentina'),
-        ('ARM', 'Armenia'),
-        ('AUS', 'Australia'),
-        ('AUT', 'Austria')
-    ]
-    
-    years = [2020, 2021, 2022, 2023, 2024]
-    
-    antigens = [
-        ('DIPHCV4', 'Diphtheria-containing vaccine, 4th dose (1st booster)'),
-        ('DIPHCV5', 'Diphtheria-containing vaccine, 5th dose (2nd booster)'),
-        ('DIPHCV6', 'Diphtheria-containing vaccine, 6th dose (3rd booster)'),
-        ('HepB3', 'Hepatitis B vaccine, 3rd dose'),
-        ('MCV1', 'Measles-containing vaccine, 1st dose'),
-        ('MCV2', 'Measles-containing vaccine, 2nd dose'),
-        ('POL3', 'Polio vaccine, 3rd dose')
-    ]
-    
-    coverage_categories = [
-        ('ADMIN', 'Administrative coverage'),
-        ('OFFICIAL', 'Official coverage')
-    ]
-    
-    # Génération des données (fausses données)
-    data_rows = []
-    
-    for code, name in countries:
-        for year in years:
-            for antigen_code, antigen_desc in antigens:
-                for cov_cat, cov_cat_desc in coverage_categories:
-                    # Génération de la couverture vaccinale
-                    coverage = round(np.random.uniform(70, 98), 2)
-                    
-                    # Pour ADMIN, on génère des valeurs TARGET_NUMBER et DOSES
-                    if cov_cat == 'ADMIN':
-                        target_number = np.random.randint(800, 2000)
-                        doses = int(target_number * (coverage / 100))
-                    else:
-                        target_number = None
-                        doses = None
-                    
-                    data_rows.append({
-                        'GROUP': 'COUNTRIES',
-                        'CODE': code,
-                        'NAME': name,
-                        'YEAR': year,
-                        'ANTIGEN': antigen_code,
-                        'ANTIGEN_DESCRIPTION': antigen_desc,
-                        'COVERAGE_CATEGORY': cov_cat,
-                        'COVERAGE_CATEGORY_DESCRIPTION': cov_cat_desc,
-                        'TARGET_NUMBER': target_number,
-                        'DOSES': doses,
-                        'COVERAGE': coverage
-                    })
-    
-    data = pd.DataFrame(data_rows)
-    return data
-
-
-def parse_arguments():
-    """Parse les arguments en ligne de commande."""
-    parser = argparse.ArgumentParser(description='Application Dash - Doctors')
-    parser.add_argument('--port', type=int, default=8050,
-                        help='Port du serveur (défaut: 8050)')
-    parser.add_argument('--host', type=str, default='127.0.0.1',
-                        help='Hôte du serveur (défaut: 127.0.0.1)')
-    parser.add_argument('--debug', action='store_true',
-                        help='Active le mode debug')
-    parser.add_argument('--no-reload', dest='use_reloader', action='store_false',
-                        help='Désactive le rechargement automatique')
+    parser = argparse.ArgumentParser(
+        description='Vaccination Coverage Dashboard - Application Dash'
+    )
+    parser.add_argument(
+        '--port',
+        type=int,
+        default=8050,
+        help='Port du serveur (défaut: 8050)'
+    )
+    parser.add_argument(
+        '--host',
+        type=str,
+        default='127.0.0.1',
+        help='Hôte du serveur (défaut: 127.0.0.1)'
+    )
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='Active le mode debug'
+    )
+    parser.add_argument(
+        '--no-reload',
+        dest='use_reloader',
+        action='store_false',
+        help='Désactive le rechargement automatique'
+    )
     parser.set_defaults(use_reloader=True)
     
     return parser.parse_args()
 
 
-def create_dashboard_layout(app, data):
+def print_startup_info(host: str, port: int, debug: bool, use_reloader: bool, n_records: int) -> None:
     """
-    Crée le layout principal du dashboard avec sidebar à gauche.
+    Affiche les informations de démarrage.
+    
+    Args:
+        host: Adresse de l'hôte
+        port: Port du serveur
+        debug: Mode debug activé ou non
+        use_reloader: Rechargement automatique activé ou non
+        n_records: Nombre d'enregistrements chargés
     """
-    return html.Div([
-        # Sidebar à gauche
-        create_sidebar(data),
-        
-        # Contenu principal
-        html.Div([
-            create_navbar(),
-            
-            html.Div([
-                create_home_layout(data)
-            ], className='container'),
-            
-            create_footer()
-        ], className='main-content')
-        
-    ], className='app-container')
+    print("\n" + "=" * 60)
+    print("🏥 Vaccination Coverage Dashboard")
+    print("=" * 60)
+    print(f"📊 {n_records} enregistrements chargés")
+    print(f"🌐 Serveur: http://{host}:{port}")
+    print(f"🐛 Mode debug: {'activé' if debug else 'désactivé'}")
+    print(f"🔄 Rechargement auto: {'activé' if use_reloader else 'désactivé'}")
+    print("=" * 60)
+    print("\nAppuyez sur CTRL+C pour arrêter le serveur\n")
 
 
-def init_callbacks(app, data):
+def initialize_app(data) -> dash.Dash:
     """
-    Initialise tous les callbacks de l'application.
+    Initialize and configure the Dash application.
+    
+    Args:
+        data: DataFrame contenant les données de vaccination
+        
+    Returns:
+        A configured Dash application instance
     """
-    from src.pages.home import register_callbacks as register_home_callbacks
-    from src.components.sidebar_callbacks import register_sidebar_callbacks
+    # Initialize app
+    app = dash.Dash(
+        __name__,
+        suppress_callback_exceptions=True,
+        title='Vaccination Coverage Dashboard',
+        meta_tags=[
+            {
+                "name": "viewport",
+                "content": "width=device-width, initial-scale=1.0"
+            }
+        ]
+    )
     
-    register_home_callbacks(app, data)
-    register_sidebar_callbacks(app, data)
+    # Set up layout
+    app.layout = create_main_layout(data)
     
-    print("✓ Callbacks initialisés avec succès")
+    # Initialize callbacks
+    register_all_callbacks(app, data)
+    
+    return app
 
 
 def main() -> None:
-    """Main function to launch the dashboard."""
-    # Parse
+    """
+    Fonction principale pour lancer le dashboard.
+    """
+    # On parse les arguments de la ligne de commande
     args = parse_arguments()
     
-    print("=" * 60)
-    print("Démarrage de l'application Dash - Doctors")
-    print("=" * 60)
-    
-    # Charge les données
+    # Chargement des données
     print("Chargement des données...")
-    data = load_sample_data()
+    data = generate_sample_vaccination_data()
     print(f"✓ {len(data)} enregistrements chargés")
     
-    # Initialise l'application Dash
-    print("Initialisation de l'application Dash...")
-    app = Dash(
-        __name__,
-        suppress_callback_exceptions=True,
-        title='Doctors Dashboard',
-        update_title='Chargement...'
-    )
+    # Initialisation de l'application
+    print("Création de l'application...")
+    app = initialize_app(data)
+    print("✓ Application créée et configurée")
     
-    # Crée le layout
-    print("📐 Création du layout...")
-    app.layout = create_dashboard_layout(app, data)
-    print("✓ Layout créé")
-    
-    # Initialise les callbacks
-    print("\n🔗 Initialisation des callbacks...")
-    init_callbacks(app, data)
-    
-    # Lance le serveur
-    print("\n" + "=" * 60)
-    print(f"🌐 Serveur démarré sur http://{args.host}:{args.port}")
-    print(f"🐛 Mode debug: {'activé' if args.debug else 'désactivé'}")
-    print(f"🔄 Rechargement auto: {'activé' if args.use_reloader else 'désactivé'}")
-    print("=" * 60)
-    print("\nAppuyez sur CTRL+C pour arrêter le serveur\n")
-    
+    # Affichage des infos de démarrage
+    print_startup_info(args.host, args.port, args.debug, args.use_reloader, len(data))
+
+    # Démarrage du serveur
     app.run(
         debug=args.debug,
         host=args.host,
