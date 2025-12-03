@@ -1,7 +1,7 @@
 from dash import html
 
 
-def create_navbar():
+def create_navbar() -> html.Nav:
     return html.Nav([
         html.Div([
             html.A("Doctors Dashboard", href="/", className='navbar-brand'),

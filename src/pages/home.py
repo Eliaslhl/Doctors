@@ -1,14 +1,16 @@
 from dash import html, dcc, Input, Output
 import plotly.express as px
 import plotly.graph_objects as go
+import pandas as pd
+
 from config import PLOTLY_CONFIG, PLOTLY_TEMPLATE, COLOR_PALETTE
 
 
-def create_home_layout(data):
+def create_home_layout(data: pd.DataFrame) -> html.Div:
     # Calcul de statistiques spécifiques aux données de vaccination
-    n_countries = data['NAME'].nunique() if 'NAME' in data.columns else 0
-    n_years = data['YEAR'].nunique() if 'YEAR' in data.columns else 0
-    avg_coverage = data['COVERAGE'].mean() if 'COVERAGE' in data.columns else 0
+    n_countries: int = int(data['NAME'].nunique()) if 'NAME' in data.columns else 0
+    n_years: int = int(data['YEAR'].nunique()) if 'YEAR' in data.columns else 0
+    avg_coverage: float = float(data['COVERAGE'].mean()) if 'COVERAGE' in data.columns else 0.0
     
     return html.Div([
         html.H1("Dashboard - Vaccination Coverage", className='page-title'),
@@ -96,13 +98,12 @@ def create_home_layout(data):
     ], className='home-page')
 
 
-def register_callbacks(app, data):
+def register_callbacks(app, data: pd.DataFrame) -> None:
     @app.callback(
         Output('graph-1', 'figure'),
         Input('column-dropdown-1', 'value')
     )
-    def update_graph_1(selected_column):
-        """Met à jour le premier graphique en fonction de la colonne sélectionnée."""
+    def update_graph_1(selected_column: str) -> go.Figure:
         if selected_column is None or selected_column not in data.columns:
             return go.Figure()
         
@@ -187,8 +188,7 @@ def register_callbacks(app, data):
         Output('graph-2', 'figure'),
         Input('column-dropdown-2', 'value')
     )
-    def update_graph_2(selected_column):
-        """Met à jour le deuxième graphique en fonction de la colonne sélectionnée."""
+    def update_graph_2(selected_column: str) -> go.Figure:
         if selected_column is None or selected_column not in data.columns:
             return go.Figure()
         
