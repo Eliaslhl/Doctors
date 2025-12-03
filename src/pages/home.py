@@ -1,16 +1,31 @@
 from dash import html, dcc, Input, Output
-import plotly.express as px
-import plotly.graph_objects as go
 import pandas as pd
+import plotly.graph_objects as go
 
-from config import PLOTLY_CONFIG, PLOTLY_TEMPLATE, COLOR_PALETTE
+from config import PLOTLY_CONFIG
+from src.graphics import (
+    create_country_details,
+    create_pie_chart,
+    create_statistics_histogram,
+    create_statistics_boxplot,
+    create_statistics_cards,
+    create_timed_count,
+    create_tree_map
+)
 
 
 def create_home_layout(data: pd.DataFrame) -> html.Div:
-    # Calcul de statistiques spécifiques aux données de vaccination
-    n_countries: int = int(data['NAME'].nunique()) if 'NAME' in data.columns else 0
-    n_years: int = int(data['YEAR'].nunique()) if 'YEAR' in data.columns else 0
-    avg_coverage: float = float(data['COVERAGE'].mean()) if 'COVERAGE' in data.columns else 0.0
+    """
+    Crée le layout de la page d'accueil.
+    
+    Args:
+        data: DataFrame contenant les données de vaccination
+        
+    Returns:
+        Layout Dash de la page d'accueil
+    """
+    # Calcul de statistiques via le module graphics
+    stats = create_statistics_cards(data)
     
     return html.Div([
         html.H1("Dashboard - Vaccination Coverage", className='page-title'),
@@ -21,21 +36,21 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
             html.Div([
                 html.Div([
                     html.H3("Pays", className='stat-title'),
-                    html.H2(f"{n_countries}", className='stat-value')
+                    html.H2(f"{stats['n_countries']}", className='stat-value')
                 ], className='card stat-card')
             ], className='col'),
             
             html.Div([
                 html.Div([
                     html.H3("Années", className='stat-title'),
-                    html.H2(f"{n_years}", className='stat-value')
+                    html.H2(f"{stats['n_years']}", className='stat-value')
                 ], className='card stat-card')
             ], className='col'),
             
             html.Div([
                 html.Div([
                     html.H3("Couverture moyenne", className='stat-title'),
-                    html.H2(f"{avg_coverage:.1f}%", className='stat-value')
+                    html.H2(f"{stats['avg_coverage']:.1f}%", className='stat-value')
                 ], className='card stat-card')
             ], className='col'),
         ], className='row stats-row'),
@@ -99,171 +114,76 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
 
 
 def register_callbacks(app, data: pd.DataFrame) -> None:
+    """
+    Enregistre les callbacks pour la page d'accueil.
+    Tous les graphiques utilisent le module src/graphics/.
+    
+    Args:
+        app: Application Dash
+        data: DataFrame contenant les données de vaccination
+    """
+    
     @app.callback(
         Output('graph-1', 'figure'),
         Input('column-dropdown-1', 'value')
     )
     def update_graph_1(selected_column: str) -> go.Figure:
+        """Mise à jour du graphique 1 en fonction de la colonne sélectionnée."""
         if selected_column is None or selected_column not in data.columns:
             return go.Figure()
         
-        # Graphiques spécifiques pour les données de vaccination
+        # Utilisation exclusive des fonctions du module graphics
         if selected_column == 'COVERAGE':
-            # Distribution de la couverture vaccinale
-            fig = px.histogram(
-                data,
-                x=selected_column,
-                title='Distribution de la couverture vaccinale (%)',
-                template=PLOTLY_TEMPLATE,
-                color_discrete_sequence=COLOR_PALETTE,
-                nbins=30
-            )
-            fig.update_layout(
-                xaxis_title='Couverture (%)',
-                yaxis_title='Nombre d\'enregistrements',
-                hovermode='x unified'
-            )
-        elif selected_column == 'YEAR':
-            # Évolution par année
-            year_data = data.groupby('YEAR')['COVERAGE'].mean().reset_index()
-            fig = px.line(
-                year_data,
-                x='YEAR',
-                y='COVERAGE',
-                title='Couverture vaccinale moyenne par année',
-                template=PLOTLY_TEMPLATE,
-                color_discrete_sequence=COLOR_PALETTE,
-                markers=True
-            )
-            fig.update_layout(
-                xaxis_title='Année',
-                yaxis_title='Couverture moyenne (%)',
-                hovermode='x unified'
-            )
-        elif selected_column in ['NAME', 'ANTIGEN', 'COVERAGE_CATEGORY']:
-            # Top 10 des valeurs pour les colonnes catégorielles
-            value_counts = data[selected_column].value_counts().head(10)
-            fig = px.bar(
-                x=value_counts.index,
-                y=value_counts.values,
-                title=f'Top 10 - {selected_column}',
-                labels={'x': selected_column, 'y': 'Nombre'},
-                template=PLOTLY_TEMPLATE,
-                color_discrete_sequence=COLOR_PALETTE
-            )
-            fig.update_layout(
-                xaxis_title=selected_column,
-                yaxis_title='Nombre d\'enregistrements',
-                hovermode='x unified'
-            )
-        else:
-            # Graphique par défaut
-            if data[selected_column].dtype in ['int64', 'float64']:
-                fig = px.histogram(
-                    data,
-                    x=selected_column,
-                    title=f'Distribution de {selected_column}',
-                    template=PLOTLY_TEMPLATE,
-                    color_discrete_sequence=COLOR_PALETTE
-                )
-            else:
-                value_counts = data[selected_column].value_counts().head(10)
-                fig = px.bar(
-                    x=value_counts.index,
-                    y=value_counts.values,
-                    title=f'Top 10 des valeurs de {selected_column}',
-                    labels={'x': selected_column, 'y': 'Nombre'},
-                    template=PLOTLY_TEMPLATE,
-                    color_discrete_sequence=COLOR_PALETTE
-                )
-            fig.update_layout(
-                xaxis_title=selected_column,
-                yaxis_title='Fréquence',
-                hovermode='x unified'
-            )
+            return create_statistics_histogram(data, column='COVERAGE', nbins=30)
         
-        return fig
+        elif selected_column == 'YEAR':
+            return create_timed_count(data, time_column='YEAR', value_column='COVERAGE')
+        
+        elif selected_column == 'NAME':
+            return create_country_details(data, top_n=10)
+        
+        elif selected_column == 'ANTIGEN':
+            return create_tree_map(data, path=['ANTIGEN'], values='COVERAGE')
+        
+        elif selected_column in ['COVERAGE_CATEGORY', 'GROUP']:
+            return create_pie_chart(data, column=selected_column)
+        
+        else:
+            # Pour les autres colonnes, utiliser histogramme ou pie selon le type
+            if data[selected_column].dtype in ['int64', 'float64']:
+                return create_statistics_histogram(data, column=selected_column)
+            else:
+                return create_pie_chart(data, column=selected_column, max_categories=10)
     
     @app.callback(
         Output('graph-2', 'figure'),
         Input('column-dropdown-2', 'value')
     )
     def update_graph_2(selected_column: str) -> go.Figure:
+        """Mise à jour du graphique 2 en fonction de la colonne sélectionnée."""
         if selected_column is None or selected_column not in data.columns:
             return go.Figure()
         
-        # Graphiques spécifiques pour les données de vaccination
+        # Utilisation exclusive des fonctions du module graphics
         if selected_column == 'COVERAGE':
-            # Box plot de la couverture par catégorie
-            fig = px.box(
-                data,
-                x='COVERAGE_CATEGORY',
-                y='COVERAGE',
-                title='Distribution de la couverture par catégorie',
-                template=PLOTLY_TEMPLATE,
-                color='COVERAGE_CATEGORY',
-                color_discrete_sequence=COLOR_PALETTE
-            )
-            fig.update_layout(
-                xaxis_title='Catégorie de couverture',
-                yaxis_title='Couverture (%)',
-                showlegend=False
-            )
-        elif selected_column == 'ANTIGEN':
-            # Couverture moyenne par antigène
-            antigen_data = data.groupby('ANTIGEN')['COVERAGE'].mean().sort_values(ascending=False).head(10)
-            fig = px.bar(
-                x=antigen_data.index,
-                y=antigen_data.values,
-                title='Couverture moyenne par antigène (Top 10)',
-                labels={'x': 'Antigène', 'y': 'Couverture moyenne (%)'},
-                template=PLOTLY_TEMPLATE,
-                color_discrete_sequence=COLOR_PALETTE
-            )
-            fig.update_layout(
-                xaxis_title='Antigène',
-                yaxis_title='Couverture moyenne (%)'
-            )
-        elif selected_column == 'NAME':
-            # Top 10 pays par couverture moyenne
-            country_data = data.groupby('NAME')['COVERAGE'].mean().sort_values(ascending=False).head(10)
-            fig = px.bar(
-                x=country_data.values,
-                y=country_data.index,
-                orientation='h',
-                title='Top 10 pays - Couverture moyenne',
-                labels={'x': 'Couverture moyenne (%)', 'y': 'Pays'},
-                template=PLOTLY_TEMPLATE,
-                color_discrete_sequence=COLOR_PALETTE
-            )
-        elif selected_column in ['COVERAGE_CATEGORY', 'GROUP']:
-            # Graphique en camembert
-            value_counts = data[selected_column].value_counts()
-            fig = px.pie(
-                values=value_counts.values,
-                names=value_counts.index,
-                title=f'Répartition - {selected_column}',
-                template=PLOTLY_TEMPLATE,
-                color_discrete_sequence=COLOR_PALETTE
-            )
-        else:
-            # Graphique par défaut
-            if data[selected_column].dtype in ['int64', 'float64']:
-                fig = px.box(
-                    data,
-                    y=selected_column,
-                    title=f'Statistiques de {selected_column}',
-                    template=PLOTLY_TEMPLATE,
-                    color_discrete_sequence=COLOR_PALETTE
-                )
-            else:
-                value_counts = data[selected_column].value_counts().head(8)
-                fig = px.pie(
-                    values=value_counts.values,
-                    names=value_counts.index,
-                    title=f'Répartition de {selected_column}',
-                    template=PLOTLY_TEMPLATE,
-                    color_discrete_sequence=COLOR_PALETTE
-                )
+            return create_statistics_boxplot(data, column='COVERAGE', group_by='COVERAGE_CATEGORY')
         
-        return fig
+        elif selected_column == 'YEAR':
+            # Graphique différent pour le graph-2 : comparaison annuelle
+            return create_timed_count(data, time_column='YEAR', value_column='COVERAGE', group_by='GROUP')
+        
+        elif selected_column == 'NAME':
+            return create_country_details(data, top_n=15)
+        
+        elif selected_column == 'ANTIGEN':
+            return create_tree_map(data, path=['GROUP', 'ANTIGEN'], values='COVERAGE')
+        
+        elif selected_column in ['COVERAGE_CATEGORY', 'GROUP']:
+            return create_pie_chart(data, column=selected_column)
+        
+        else:
+            # Pour les autres colonnes, utiliser boxplot ou pie selon le type
+            if data[selected_column].dtype in ['int64', 'float64']:
+                return create_statistics_boxplot(data, column=selected_column)
+            else:
+                return create_pie_chart(data, column=selected_column, max_categories=8)

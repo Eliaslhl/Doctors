@@ -4,10 +4,18 @@ import pandas as pd
 
 
 def create_sidebar(data: pd.DataFrame) -> html.Div:
-    # Extraire les années disponibles
-    years: List[int] = sorted(data['YEAR'].unique().tolist()) if 'YEAR' in data.columns else []
-    countries: List[str] = sorted(data['NAME'].unique().tolist()) if 'NAME' in data.columns else []
-    antigens: List[str] = sorted(data['ANTIGEN'].unique().tolist()) if 'ANTIGEN' in data.columns else []
+    # Extraire les années disponibles (en gérant les NaN)
+    years: List[int] = []
+    if 'YEAR' in data.columns:
+        years = sorted([int(y) for y in data['YEAR'].dropna().unique()])
+    
+    countries: List[str] = []
+    if 'NAME' in data.columns:
+        countries = sorted([str(c) for c in data['NAME'].dropna().unique()])
+    
+    antigens: List[str] = []
+    if 'ANTIGEN' in data.columns:
+        antigens = sorted([str(a) for a in data['ANTIGEN'].dropna().unique()])
     
     return html.Div([
         # Logo/Titre
