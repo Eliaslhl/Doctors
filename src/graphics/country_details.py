@@ -36,7 +36,12 @@ def create_country_details(
     # Calcul de la couverture moyenne par pays
     country_data = data.groupby('NAME')['COVERAGE'].mean().sort_values(ascending=False).head(top_n)
     
-    default_title = f'Top {top_n} pays - Couverture moyenne'
+
+    if len(country_data) == top_n:
+        default_title = f'Top {top_n} pays - Couverture moyenne'
+    else:
+        default_title = f'Pays par couverture moyenne ({len(country_data)} pays)'
+    
     fig = px.bar(
         x=country_data.values,
         y=country_data.index,

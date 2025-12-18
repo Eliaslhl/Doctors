@@ -57,41 +57,98 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
             ], className='col'),
         ], className='row stats-row'),
         
-        # Section des graphiques
+        # Pays par Couverture + Évolution Temporelle
         html.Div([
+            # Pays par Couverture
             html.Div([
                 html.Div([
-                    html.H3("Visualisation 1", className='card-title'),
-                    html.Div([
-                        html.Label("Sélectionner une colonne:", className='dropdown-label'),
-                        dcc.Dropdown(
-                            id='column-dropdown-1',
-                            options=[{'label': col, 'value': col} for col in data.columns],
-                            value=data.columns[0] if len(data.columns) > 0 else None,
-                            clearable=False
-                        ),
-                    ], className='dropdown-container'),
+                    html.H3("📊 Pays par Couverture Moyenne", className='card-title'),
                     dcc.Graph(
-                        id='graph-1',
+                        id='country-details-graph',
                         config=PLOTLY_CONFIG  # type: ignore
                     )
                 ], className='card graph-container')
             ], className='col'),
             
+            # Évolution Temporelle
             html.Div([
                 html.Div([
-                    html.H3("Visualisation 2", className='card-title'),
-                    html.Div([
-                        html.Label("Sélectionner une colonne:", className='dropdown-label'),
-                        dcc.Dropdown(
-                            id='column-dropdown-2',
-                            options=[{'label': col, 'value': col} for col in data.columns],
-                            value=data.columns[1] if len(data.columns) > 1 else data.columns[0],
-                            clearable=False
-                        ),
-                    ], className='dropdown-container'),
+                    html.H3("📈 Évolution de la Couverture dans le Temps", className='card-title'),
                     dcc.Graph(
-                        id='graph-2',
+                        id='timed-count-graph',
+                        config=PLOTLY_CONFIG  # type: ignore
+                    )
+                ], className='card graph-container')
+            ], className='col'),
+        ], className='row'),
+        
+        # Graphiques d'Exploration
+        html.Div([
+            html.H3("🔍 Exploration des Données", className='section-title', 
+                   style={'marginTop': '30px', 'marginBottom': '10px', 'color': '#2c3e50'}),
+            html.P("Voici deux graphiques pour comparer différentes visualisations des mêmes données filtrées. "
+                   "Parfait pour une analyse multi-angle ! 📊",
+                   style={'color': '#7f8c8d', 'fontSize': '14px', 'marginBottom': '20px', 'fontStyle': 'italic'}),
+        ], className='row'),
+        
+        # Graphique d'exploration 1 - Distribution
+        html.Div([
+            html.Div([
+                html.Div([
+                    html.Div([
+                        html.H3("📊 Analyse de Distribution", className='card-title', style={'display': 'inline-block', 'marginRight': '10px'}),
+                        html.Span("Première Vue", 
+                                 style={'backgroundColor': '#3498db', 'color': 'white', 'padding': '4px 12px', 
+                                        'borderRadius': '12px', 'fontSize': '12px', 'fontWeight': 'bold'})
+                    ], style={'marginBottom': '10px'}),
+                    html.P("Visualisez les distributions et quartiles des données", 
+                          style={'color': '#7f8c8d', 'fontSize': '13px', 'marginBottom': '10px'}),
+                    html.Div([
+                        html.Label("Type de graphique:", className='dropdown-label'),
+                        dcc.Dropdown(
+                            id='graph-type-1',
+                            options=[  # type: ignore
+                                {'label': '📊 Histogram - Distribution des valeurs', 'value': 'histogram'},
+                                {'label': '📦 Boxplot - Quartiles et outliers', 'value': 'boxplot'}
+                            ],
+                            value='histogram',
+                            clearable=False,
+                            className='custom-dropdown'
+                        ),
+                    ], className='dropdown-container', style={'marginTop': '10px'}),
+                    dcc.Graph(
+                        id='exploration-graph-1',
+                        config=PLOTLY_CONFIG  # type: ignore
+                    )
+                ], className='card graph-container')
+            ], className='col'),
+            
+            # Graphique d'exploration 2 - Composition
+            html.Div([
+                html.Div([
+                    html.Div([
+                        html.H3("🗂️ Analyse de Composition", className='card-title', style={'display': 'inline-block', 'marginRight': '10px'}),
+                        html.Span("Comparaison", 
+                                 style={'backgroundColor': '#e74c3c', 'color': 'white', 'padding': '4px 12px', 
+                                        'borderRadius': '12px', 'fontSize': '12px', 'fontWeight': 'bold'})
+                    ], style={'marginBottom': '10px'}),
+                    html.P("Visualisez les proportions et hiérarchies des données", 
+                          style={'color': '#7f8c8d', 'fontSize': '13px', 'marginBottom': '10px'}),
+                    html.Div([
+                        html.Label("Type de graphique:", className='dropdown-label'),
+                        dcc.Dropdown(
+                            id='graph-type-2',
+                            options=[  # type: ignore
+                                {'label': '🥧 Pie Chart - Proportions par catégorie', 'value': 'pie'},
+                                {'label': '🗺️ TreeMap - Hiérarchie détaillée', 'value': 'treemap'}
+                            ],
+                            value='pie',
+                            clearable=False,
+                            className='custom-dropdown'
+                        ),
+                    ], className='dropdown-container', style={'marginTop': '10px'}),
+                    dcc.Graph(
+                        id='exploration-graph-2',
                         config=PLOTLY_CONFIG  # type: ignore
                     )
                 ], className='card graph-container')
@@ -167,33 +224,20 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
 
 
 def register_callbacks(app, data: pd.DataFrame) -> None:
-    """
-    Enregistre les callbacks pour la page d'accueil.
-    Tous les graphiques utilisent le module src/graphics/.
-    """
+    """Enregistre tous les callbacks pour les graphiques hybrides (fixes + dynamiques)."""
     
+    # callback - Pays par Couverture
     @app.callback(
-        Output('graph-1', 'figure'),
+        Output('country-details-graph', 'figure'),
         [
-            Input('column-dropdown-1', 'value'),
             Input('global-year-filter', 'value'),
             Input('global-country-filter', 'value'),
             Input('global-antigen-filter', 'value'),
             Input('global-category-filter', 'value')
         ]
     )
-    def update_graph_1(
-        selected_column: str,
-        year_filter: str,
-        country_filter: str,
-        antigen_filter: str,
-        category_filter: str
-    ) -> go.Figure:
-        """Mise à jour du graphique 1 avec filtres globaux."""
-        if selected_column is None or selected_column not in data.columns:
-            return go.Figure()
-        
-        # Applique les filtres globaux via get_filtered_data
+    def update_country_details(year_filter: str, country_filter: str, antigen_filter: str, category_filter: str) -> go.Figure:
+        """Met à jour le graphique des pays par couverture (fixe)."""
         filtered_data = get_filtered_data(
             data=data,
             year=int(year_filter) if year_filter != 'all' else None,
@@ -203,46 +247,26 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
         )
         
         if filtered_data.empty:
-            return go.Figure()
+            return go.Figure().add_annotation(
+                text="Aucune donnée disponible",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False
+            )
         
-        if selected_column == 'COVERAGE':
-            return create_statistics_histogram(filtered_data, column='COVERAGE', nbins=30)
-        elif selected_column == 'YEAR':
-            return create_timed_count(filtered_data, time_column='YEAR', value_column='COVERAGE')
-        elif selected_column == 'NAME':
-            return create_country_details(filtered_data, top_n=10)
-        elif selected_column == 'ANTIGEN':
-            return create_tree_map(filtered_data, path=['ANTIGEN'], values='COVERAGE')
-        elif selected_column in ['COVERAGE_CATEGORY', 'GROUP']:
-            return create_pie_chart(filtered_data, column=selected_column)
-        else:
-            if filtered_data[selected_column].dtype in ['int64', 'float64']:
-                return create_statistics_histogram(filtered_data, column=selected_column)
-            else:
-                return create_pie_chart(filtered_data, column=selected_column, max_categories=10)
+        return create_country_details(filtered_data, top_n=10)
     
+    # Évolution Temporelle
     @app.callback(
-        Output('graph-2', 'figure'),
+        Output('timed-count-graph', 'figure'),
         [
-            Input('column-dropdown-2', 'value'),
             Input('global-year-filter', 'value'),
             Input('global-country-filter', 'value'),
             Input('global-antigen-filter', 'value'),
             Input('global-category-filter', 'value')
         ]
     )
-    def update_graph_2(
-        selected_column: str,
-        year_filter: str,
-        country_filter: str,
-        antigen_filter: str,
-        category_filter: str
-    ) -> go.Figure:
-        """Mise à jour du graphique 2 avec filtres globaux."""
-        if selected_column is None or selected_column not in data.columns:
-            return go.Figure()
-        
-        # Applique les filtres globaux via get_filtered_data
+    def update_timed_count(year_filter: str, country_filter: str, antigen_filter: str, category_filter: str) -> go.Figure:
+        """Met à jour le graphique d'évolution temporelle (fixe)."""
         filtered_data = get_filtered_data(
             data=data,
             year=int(year_filter) if year_filter != 'all' else None,
@@ -252,21 +276,90 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
         )
         
         if filtered_data.empty:
-            return go.Figure()
+            return go.Figure().add_annotation(
+                text="Aucune donnée disponible",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False
+            )
         
-        # Génère le graphique
-        if selected_column == 'COVERAGE':
+        return create_timed_count(filtered_data, time_column='YEAR', value_column='COVERAGE')
+    
+    # callback - Graphique d'Exploration 1
+    @app.callback(
+        Output('exploration-graph-1', 'figure'),
+        [
+            Input('graph-type-1', 'value'),
+            Input('global-year-filter', 'value'),
+            Input('global-country-filter', 'value'),
+            Input('global-antigen-filter', 'value'),
+            Input('global-category-filter', 'value')
+        ]
+    )
+    def update_exploration_1(graph_type: str, year_filter: str, country_filter: str, antigen_filter: str, category_filter: str) -> go.Figure:
+        """Met à jour le graphique d'exploration 1 (Distribution) selon le type sélectionné."""
+        filtered_data = get_filtered_data(
+            data=data,
+            year=int(year_filter) if year_filter != 'all' else None,
+            country=country_filter if country_filter != 'all' else None,
+            antigen=antigen_filter if antigen_filter != 'all' else None,
+            coverage_category=category_filter if category_filter != 'all' else None
+        )
+        
+        if filtered_data.empty:
+            return go.Figure().add_annotation(
+                text="Aucune donnée disponible",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False
+            )
+        
+        # callback - Graphique 1 : Distribution uniquement (Histogram ou Boxplot)
+        if graph_type == 'histogram':
+            return create_statistics_histogram(filtered_data, column='COVERAGE', nbins=20)
+        elif graph_type == 'boxplot':
             return create_statistics_boxplot(filtered_data, column='COVERAGE', group_by='COVERAGE_CATEGORY')
-        elif selected_column == 'YEAR':
-            return create_timed_count(filtered_data, time_column='YEAR', value_column='COVERAGE', group_by='GROUP')
-        elif selected_column == 'NAME':
-            return create_country_details(filtered_data, top_n=15)
-        elif selected_column == 'ANTIGEN':
-            return create_tree_map(filtered_data, path=['GROUP', 'ANTIGEN'], values='COVERAGE')
-        elif selected_column in ['COVERAGE_CATEGORY', 'GROUP']:
-            return create_pie_chart(filtered_data, column=selected_column)
         else:
-            if filtered_data[selected_column].dtype in ['int64', 'float64']:
-                return create_statistics_boxplot(filtered_data, column=selected_column)
-            else:
-                return create_pie_chart(filtered_data, column=selected_column, max_categories=8)
+            return go.Figure().add_annotation(
+                text="Type de graphique non reconnu",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False
+            )
+    
+    # callback - Graphique d'Exploration 2
+    @app.callback(
+        Output('exploration-graph-2', 'figure'),
+        [
+            Input('graph-type-2', 'value'),
+            Input('global-year-filter', 'value'),
+            Input('global-country-filter', 'value'),
+            Input('global-antigen-filter', 'value'),
+            Input('global-category-filter', 'value')
+        ]
+    )
+    def update_exploration_2(graph_type: str, year_filter: str, country_filter: str, antigen_filter: str, category_filter: str) -> go.Figure:
+        """Met à jour le graphique d'exploration 2 (Composition) selon le type sélectionné."""
+        filtered_data = get_filtered_data(
+            data=data,
+            year=int(year_filter) if year_filter != 'all' else None,
+            country=country_filter if country_filter != 'all' else None,
+            antigen=antigen_filter if antigen_filter != 'all' else None,
+            coverage_category=category_filter if category_filter != 'all' else None
+        )
+        
+        if filtered_data.empty:
+            return go.Figure().add_annotation(
+                text="Aucune donnée disponible",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False
+            )
+        
+        # Graphique 2 : Composition uniquement (Pie Chart ou TreeMap)
+        if graph_type == 'pie':
+            return create_pie_chart(filtered_data, column='COVERAGE_CATEGORY')
+        elif graph_type == 'treemap':
+            return create_tree_map(filtered_data, path=['GROUP', 'ANTIGEN'], values='COVERAGE')
+        else:
+            return go.Figure().add_annotation(
+                text="Type de graphique non reconnu",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False
+            )
