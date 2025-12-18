@@ -116,6 +116,12 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+4. **Nettoyer les données**
+
+```bash
+PYTHONPATH=. venv/bin/python src/utils/clean_data.py
+```
+
 ---
 
 ## 💻 Utilisation
@@ -126,6 +132,8 @@ Pour lancer l'application avec les paramètres par défaut :
 
 ```bash
 python main.py
+# ou
+venv/bin/python main.py
 ```
 
 L'application sera accessible à l'adresse : **http://127.0.0.1:8050**
@@ -161,6 +169,12 @@ python main.py --port 8080 --debug
 ### Arrêter l'application
 
 Appuyez sur **CTRL+C** dans le terminal pour arrêter le serveur.
+
+---
+
+## 📊 Pipeline de Données
+
+### Vue d'ensemble
 
 ---
 
