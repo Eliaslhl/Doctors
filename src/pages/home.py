@@ -1,8 +1,10 @@
 from dash import html, dcc, Input, Output
+from dash.dash_table import DataTable
 import pandas as pd
 import plotly.graph_objects as go
 
 from config import PLOTLY_CONFIG
+from src.utils.get_data import get_filtered_data
 from src.graphics import (
     create_country_details,
     create_pie_chart,
@@ -71,7 +73,7 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
                     ], className='dropdown-container'),
                     dcc.Graph(
                         id='graph-1',
-                        config=PLOTLY_CONFIG
+                        config=PLOTLY_CONFIG  # type: ignore
                     )
                 ], className='card graph-container')
             ], className='col'),
@@ -90,7 +92,7 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
                     ], className='dropdown-container'),
                     dcc.Graph(
                         id='graph-2',
-                        config=PLOTLY_CONFIG
+                        config=PLOTLY_CONFIG  # type: ignore
                     )
                 ], className='card graph-container')
             ], className='col'),
@@ -100,13 +102,64 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
         html.Div([
             html.Div([
                 html.H3("Aperçu des données", className='card-title'),
+                html.P(f"Affichage des {min(10, len(data))} premières lignes"),
                 html.Div([
-                    html.P(f"Affichage des {min(10, len(data))} premières lignes"),
-                    html.Div(
-                        data.head(10).to_html(classes='data-table', index=False),
-                        className='table-container'
+                    DataTable(
+                        data=data.head(10).to_dict('records'),  # type: ignore
+                        columns=[{"name": col, "id": col} for col in data.columns],
+                        style_table={
+                            'overflowX': 'auto',
+                            'maxWidth': '100%',
+                        },
+                        style_header={
+                            'backgroundColor': '#2c3e50',
+                            'color': 'white',
+                            'fontWeight': 'bold',
+                            'textAlign': 'left',
+                            'padding': '8px 10px',
+                            'border': 'none',
+                            'fontSize': '0.85rem',
+                            'whiteSpace': 'normal',
+                            'height': 'auto',
+                            'minWidth': '80px',
+                            'maxWidth': '180px',
+                        },
+                        style_cell={
+                            'textAlign': 'left',
+                            'padding': '8px 10px',
+                            'border': '1px solid #bdc3c7',
+                            'fontFamily': 'inherit',
+                            'fontSize': '0.8rem',
+                            'overflow': 'hidden',
+                            'textOverflow': 'ellipsis',
+                            'minWidth': '80px',
+                            'maxWidth': '180px',
+                        },
+                        style_data={
+                            'color': '#2c3e50',
+                            'backgroundColor': 'white',
+                            'whiteSpace': 'normal',
+                            'height': 'auto',
+                        },
+                        style_data_conditional=[  # type: ignore
+                            {
+                                'if': {'row_index': 'odd'},
+                                'backgroundColor': '#f8f9fa',
+                            },
+                            {
+                                'if': {'state': 'active'},
+                                'backgroundColor': '#ecf0f1',
+                            }
+                        ],
+                        tooltip_data=[  # type: ignore
+                            {
+                                column: {'value': str(value), 'type': 'markdown'}
+                                for column, value in row.items()
+                            } for row in data.head(10).to_dict('records')
+                        ],
+                        tooltip_duration=None,
                     )
-                ], style={'overflowX': 'auto'})
+                ], className='table-container')
             ], className='card')
         ], className='row'),
         
@@ -117,73 +170,103 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
     """
     Enregistre les callbacks pour la page d'accueil.
     Tous les graphiques utilisent le module src/graphics/.
-    
-    Args:
-        app: Application Dash
-        data: DataFrame contenant les données de vaccination
     """
     
     @app.callback(
         Output('graph-1', 'figure'),
-        Input('column-dropdown-1', 'value')
+        [
+            Input('column-dropdown-1', 'value'),
+            Input('global-year-filter', 'value'),
+            Input('global-country-filter', 'value'),
+            Input('global-antigen-filter', 'value'),
+            Input('global-category-filter', 'value')
+        ]
     )
-    def update_graph_1(selected_column: str) -> go.Figure:
-        """Mise à jour du graphique 1 en fonction de la colonne sélectionnée."""
+    def update_graph_1(
+        selected_column: str,
+        year_filter: str,
+        country_filter: str,
+        antigen_filter: str,
+        category_filter: str
+    ) -> go.Figure:
+        """Mise à jour du graphique 1 avec filtres globaux."""
         if selected_column is None or selected_column not in data.columns:
             return go.Figure()
         
-        # Utilisation exclusive des fonctions du module graphics
+        # Applique les filtres globaux via get_filtered_data
+        filtered_data = get_filtered_data(
+            data=data,
+            year=int(year_filter) if year_filter != 'all' else None,
+            country=country_filter if country_filter != 'all' else None,
+            antigen=antigen_filter if antigen_filter != 'all' else None,
+            coverage_category=category_filter if category_filter != 'all' else None
+        )
+        
+        if filtered_data.empty:
+            return go.Figure()
+        
         if selected_column == 'COVERAGE':
-            return create_statistics_histogram(data, column='COVERAGE', nbins=30)
-        
+            return create_statistics_histogram(filtered_data, column='COVERAGE', nbins=30)
         elif selected_column == 'YEAR':
-            return create_timed_count(data, time_column='YEAR', value_column='COVERAGE')
-        
+            return create_timed_count(filtered_data, time_column='YEAR', value_column='COVERAGE')
         elif selected_column == 'NAME':
-            return create_country_details(data, top_n=10)
-        
+            return create_country_details(filtered_data, top_n=10)
         elif selected_column == 'ANTIGEN':
-            return create_tree_map(data, path=['ANTIGEN'], values='COVERAGE')
-        
+            return create_tree_map(filtered_data, path=['ANTIGEN'], values='COVERAGE')
         elif selected_column in ['COVERAGE_CATEGORY', 'GROUP']:
-            return create_pie_chart(data, column=selected_column)
-        
+            return create_pie_chart(filtered_data, column=selected_column)
         else:
-            # Pour les autres colonnes, utiliser histogramme ou pie selon le type
-            if data[selected_column].dtype in ['int64', 'float64']:
-                return create_statistics_histogram(data, column=selected_column)
+            if filtered_data[selected_column].dtype in ['int64', 'float64']:
+                return create_statistics_histogram(filtered_data, column=selected_column)
             else:
-                return create_pie_chart(data, column=selected_column, max_categories=10)
+                return create_pie_chart(filtered_data, column=selected_column, max_categories=10)
     
     @app.callback(
         Output('graph-2', 'figure'),
-        Input('column-dropdown-2', 'value')
+        [
+            Input('column-dropdown-2', 'value'),
+            Input('global-year-filter', 'value'),
+            Input('global-country-filter', 'value'),
+            Input('global-antigen-filter', 'value'),
+            Input('global-category-filter', 'value')
+        ]
     )
-    def update_graph_2(selected_column: str) -> go.Figure:
-        """Mise à jour du graphique 2 en fonction de la colonne sélectionnée."""
+    def update_graph_2(
+        selected_column: str,
+        year_filter: str,
+        country_filter: str,
+        antigen_filter: str,
+        category_filter: str
+    ) -> go.Figure:
+        """Mise à jour du graphique 2 avec filtres globaux."""
         if selected_column is None or selected_column not in data.columns:
             return go.Figure()
         
-        # Utilisation exclusive des fonctions du module graphics
+        # Applique les filtres globaux via get_filtered_data
+        filtered_data = get_filtered_data(
+            data=data,
+            year=int(year_filter) if year_filter != 'all' else None,
+            country=country_filter if country_filter != 'all' else None,
+            antigen=antigen_filter if antigen_filter != 'all' else None,
+            coverage_category=category_filter if category_filter != 'all' else None
+        )
+        
+        if filtered_data.empty:
+            return go.Figure()
+        
+        # Génère le graphique
         if selected_column == 'COVERAGE':
-            return create_statistics_boxplot(data, column='COVERAGE', group_by='COVERAGE_CATEGORY')
-        
+            return create_statistics_boxplot(filtered_data, column='COVERAGE', group_by='COVERAGE_CATEGORY')
         elif selected_column == 'YEAR':
-            # Graphique différent pour le graph-2 : comparaison annuelle
-            return create_timed_count(data, time_column='YEAR', value_column='COVERAGE', group_by='GROUP')
-        
+            return create_timed_count(filtered_data, time_column='YEAR', value_column='COVERAGE', group_by='GROUP')
         elif selected_column == 'NAME':
-            return create_country_details(data, top_n=15)
-        
+            return create_country_details(filtered_data, top_n=15)
         elif selected_column == 'ANTIGEN':
-            return create_tree_map(data, path=['GROUP', 'ANTIGEN'], values='COVERAGE')
-        
+            return create_tree_map(filtered_data, path=['GROUP', 'ANTIGEN'], values='COVERAGE')
         elif selected_column in ['COVERAGE_CATEGORY', 'GROUP']:
-            return create_pie_chart(data, column=selected_column)
-        
+            return create_pie_chart(filtered_data, column=selected_column)
         else:
-            # Pour les autres colonnes, utiliser boxplot ou pie selon le type
-            if data[selected_column].dtype in ['int64', 'float64']:
-                return create_statistics_boxplot(data, column=selected_column)
+            if filtered_data[selected_column].dtype in ['int64', 'float64']:
+                return create_statistics_boxplot(filtered_data, column=selected_column)
             else:
-                return create_pie_chart(data, column=selected_column, max_categories=8)
+                return create_pie_chart(filtered_data, column=selected_column, max_categories=8)
