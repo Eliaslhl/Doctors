@@ -1,21 +1,26 @@
 from typing import List
 from dash import html, dcc
 import pandas as pd
+from src.utils.get_data import (
+    get_available_years,
+    get_available_countries,
+    get_available_antigens,
+    get_available_coverage_categories
+)
 
 
 def create_sidebar(data: pd.DataFrame) -> html.Div:
-    # Extraire les années disponibles (en gérant les NaN)
-    years: List[int] = []
-    if 'YEAR' in data.columns:
-        years = sorted([int(y) for y in data['YEAR'].dropna().unique()])
+    # Extrait les années disponibles
+    years: List[int] = get_available_years(data)
     
-    countries: List[str] = []
-    if 'NAME' in data.columns:
-        countries = sorted([str(c) for c in data['NAME'].dropna().unique()])
+    # Extrait les pays disponibles
+    countries: List[str] = get_available_countries(data)
     
-    antigens: List[str] = []
-    if 'ANTIGEN' in data.columns:
-        antigens = sorted([str(a) for a in data['ANTIGEN'].dropna().unique()])
+    # Extrait les antigènes disponibles
+    antigens: List[str] = get_available_antigens(data)
+    
+    # Extrait les catégories de couverture disponibles
+    coverage_categories: List[str] = get_available_coverage_categories(data)
     
     return html.Div([
         # Logo/Titre
@@ -35,7 +40,7 @@ def create_sidebar(data: pd.DataFrame) -> html.Div:
                 html.Label("Année", className='filter-label'),
                 dcc.Dropdown(
                     id='global-year-filter',
-                    options=[
+                    options=[  # type: ignore
                         {'label': 'Toutes les années', 'value': 'all'}
                     ] + [
                         {'label': str(year), 'value': year} for year in years
@@ -51,7 +56,7 @@ def create_sidebar(data: pd.DataFrame) -> html.Div:
                 html.Label("Pays", className='filter-label'),
                 dcc.Dropdown(
                     id='global-country-filter',
-                    options=[
+                    options=[  # type: ignore
                         {'label': 'Tous les pays', 'value': 'all'}
                     ] + [
                         {'label': country, 'value': country} 
@@ -68,11 +73,28 @@ def create_sidebar(data: pd.DataFrame) -> html.Div:
                 html.Label("Antigène", className='filter-label'),
                 dcc.Dropdown(
                     id='global-antigen-filter',
-                    options=[
+                    options=[  # type: ignore
                         {'label': 'Tous les antigènes', 'value': 'all'}
                     ] + [
                         {'label': antigen, 'value': antigen} 
                         for antigen in antigens
+                    ],
+                    value='all',
+                    clearable=False,
+                    className='filter-dropdown'
+                )
+            ], className='filter-group'),
+            
+            # Filtre par type de données
+            html.Div([
+                html.Label("Type de données", className='filter-label'),
+                dcc.Dropdown(
+                    id='global-category-filter',
+                    options=[  # type: ignore
+                        {'label': 'Toutes les catégories', 'value': 'all'}
+                    ] + [
+                        {'label': f'{cat}', 'value': cat} 
+                        for cat in coverage_categories
                     ],
                     value='all',
                     clearable=False,
