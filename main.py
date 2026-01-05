@@ -5,7 +5,7 @@ import dash
 
 from src.app.layout import create_main_layout
 from src.callbacks.callbacks import register_all_callbacks
-from src.utils.data_loader import load_vaccination_data
+from src.utils.get_data import get_vaccination_data
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -109,7 +109,7 @@ def main() -> None:
     
     # Chargement des données
     print("Chargement des données depuis le fichier CSV...")
-    data = load_vaccination_data()
+    data = get_vaccination_data(use_cleaned=True)
     print(f"✓ {len(data)} enregistrements chargés")
     
     # Initialisation de l'application
