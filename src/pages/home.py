@@ -10,7 +10,8 @@ from src.graphics import (
     create_statistics_boxplot,
     create_statistics_cards,
     create_timed_count,
-    create_tree_map
+    create_tree_map,
+    create_vaccination_map
 )
 
 
@@ -54,6 +55,19 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
                 ], className='card stat-card')
             ], className='col'),
         ], className='row stats-row'),
+        
+        # Section de la carte de vaccination
+        html.Div([
+            html.Div([
+                html.H3("Carte de la couverture vaccinale", className='card-title'),
+                dcc.Graph(
+                    id='vaccination-map',
+                    figure=create_vaccination_map(data), #ajouter data manquant
+                    config=PLOTLY_CONFIG,
+                    style={'height': '500px', 'width': '70vw'} 
+                )
+                ], className='card map-container')
+            ], className='row'),
         
         # Section des graphiques
         html.Div([
