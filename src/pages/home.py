@@ -2,7 +2,6 @@ import pandas as pd
 import plotly.graph_objects as go
 from dash import Input, Output, dcc, html
 from dash.dash_table import DataTable
-import dash_bootstrap_components as dbc
 
 from config import PLOTLY_CONFIG
 from src.graphics import (
@@ -142,19 +141,24 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
                 ],
                 className="row",
             ),
-        # Section de la carte de vaccination
-        html.Div([
-            html.Div([
-                html.H3("Carte de la couverture vaccinale", className='card-title'),
-                dcc.Graph(
-                    id='vaccination-map',
-                    figure=create_vaccination_map(data),
-                    config=PLOTLY_CONFIG,
-                    style={'height': '500px', 'width': '75vw', 'text-align': 'center'} 
-                )
-                ], className='card map-container')
-            ], className='row'),
-        
+            # Section de la carte de vaccination
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            html.H3("Carte de la couverture vaccinale", className="card-title"),
+                            dcc.Graph(
+                                id="vaccination-map",
+                                figure=create_vaccination_map(data),
+                                config=PLOTLY_CONFIG,  # type: ignore
+                                style={"height": "500px", "width": "75vw", "text-align": "center"},
+                            ),
+                        ],
+                        className="card map-container",
+                    )
+                ],
+                className="row",
+            ),
             # Pays par Couverture + Évolution Temporelle
             html.Div(
                 [
