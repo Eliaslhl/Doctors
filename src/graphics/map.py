@@ -3,7 +3,6 @@ Carte géographique de la couverture vaccinale.
 Optimisée pour afficher le fond de carte mondial interactif (type OSM/Leaflet) SANS données réelles.
 """
 
-from typing import Optional
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
