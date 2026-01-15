@@ -3,7 +3,6 @@ Carte géographique de la couverture vaccinale.
 Optimisée pour afficher le fond de carte mondial interactif (type OSM/Leaflet) SANS données réelles.
 """
 
-from typing import Optional
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -11,18 +10,15 @@ import plotly.graph_objects as go
 from config import PLOTLY_TEMPLATE
 
 
-def create_vaccination_map(
-    data: pd.DataFrame,
-    title: Optional[str] = None
-) -> go.Figure:
+def create_vaccination_map(data: pd.DataFrame, title: str | None = None) -> go.Figure:
     """
     Crée une carte de fond interactive (type OSM/Leaflet) centrée sur le monde.
     Crée une carte choroplèthe de la couverture vaccinale par pays.
-    
+
     Args:
         data: DataFrame (utilisé uniquement pour le fond de carte ou des données factices)
         title: Titre personnalisé (optionnel)
-        
+
     Returns:
         Figure Plotly avec le fond de carte OSM interactif.
     """
