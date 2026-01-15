@@ -12,7 +12,6 @@ openpyxl>=3.1.0  # Pour lire les fichiers Excel
 # Utilities
 python-dotenv>=1.0.0
 
-# Development (optionnel, commenter si non utilisé)
+# Development tools
+ruff>=0.8.0  # Linter + Formatteur Python
 # pytest>=7.4.3
-# black>=23.12.1
-# flake8>=6.1.0

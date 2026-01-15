@@ -1,0 +1,51 @@
+[tool.ruff]
+# Longueur de ligne maximale
+line-length = 100
+
+# Version Python cible
+target-version = "py313"
+
+# Fichiers/dossiers à exclure
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "*.pyc",
+    ".pytest_cache",
+    "data/",
+]
+
+[tool.ruff.lint]
+# Règles de linting activées
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort (tri des imports)
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "SIM",  # flake8-simplify
+]
+
+# Règles à ignorer
+ignore = [
+    "E501",  # line too long (géré par le formatteur)
+    "B008",  # do not perform function calls in argument defaults
+]
+
+# Autoriser les imports non utilisés dans __init__.py
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.ruff.format]
+# Style de formatage
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.ruff.lint.isort]
+# Configuration du tri des imports
+known-first-party = ["src"]
