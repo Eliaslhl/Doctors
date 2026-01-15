@@ -113,7 +113,7 @@ def create_yearly_comparison(
             x=0.5, y=0.5, showarrow=False
         )
     
-    # Filtrer par années si spécifié
+    # Filtre par années si spécifié
     if years:
         data = data[data['YEAR'].isin(years)]
     

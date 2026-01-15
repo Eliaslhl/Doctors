@@ -25,7 +25,6 @@ def create_vaccination_map(
         Figure Plotly avec la carte (non implémenté pour l'instant)
     """
     # TODO: Implémenter la carte géographique
-    # Nécessite des codes ISO des pays et plotly.express.choropleth
     
     fig = go.Figure()
     fig.add_annotation(

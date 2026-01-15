@@ -13,5 +13,3 @@ def register_all_callbacks(app, data: pd.DataFrame) -> None:
     """
     
     register_home_callbacks(app, data)
-    
-    # TODO: Ajouter d'autres callbacks ici si nécessaire

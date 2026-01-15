@@ -28,7 +28,7 @@ def create_tree_map(
     Returns:
         Figure Plotly avec le TreeMap
     """
-    # Vérifier que toutes les colonnes existent
+    # Vérifie que toutes les colonnes existent
     missing_columns = [col for col in path + [values] if col not in data.columns]
     if missing_columns or data.empty:
         return go.Figure().add_annotation(
@@ -37,7 +37,7 @@ def create_tree_map(
             x=0.5, y=0.5, showarrow=False
         )
     
-    # Créer le TreeMap
+    # Crée le TreeMap
     default_title = f'TreeMap hiérarchique - {" → ".join(path)}'
     fig = px.treemap(
         data,
@@ -78,7 +78,7 @@ def create_sunburst(
     Returns:
         Figure Plotly avec le Sunburst
     """
-    # Vérifier que toutes les colonnes existent
+    # Vérifie que toutes les colonnes existent
     missing_columns = [col for col in path + [values] if col not in data.columns]
     if missing_columns or data.empty:
         return go.Figure().add_annotation(
@@ -86,8 +86,8 @@ def create_sunburst(
             xref="paper", yref="paper",
             x=0.5, y=0.5, showarrow=False
         )
-    
-    # Créer le Sunburst
+
+    # Crée le Sunburst
     default_title = f'Sunburst hiérarchique - {" → ".join(path)}'
     fig = px.sunburst(
         data,
@@ -136,11 +136,11 @@ def create_hierarchical_bar(
             xref="paper", yref="paper",
             x=0.5, y=0.5, showarrow=False
         )
-    
-    # Agréger les données
+
+    # Agrège les données
     grouped_data = data.groupby([category_column, subcategory_column])[value_column].mean().reset_index()
     
-    # Filtrer les top N catégories
+    # Filtre les top N catégories
     top_categories = grouped_data.groupby(category_column)[value_column].mean().nlargest(top_n).index
     grouped_data = grouped_data[grouped_data[category_column].isin(top_categories)]
     

@@ -39,7 +39,7 @@ def clean_vaccination_data(
         FileNotFoundError: Si le fichier d'entrée n'existe pas
         ValueError: Si les données sont invalides
     """
-    # Définir les chemins par défaut
+    # chemins par défaut
     if input_file is None:
         input_file = RAW_DATA_DIR / "rawdata.csv"
     if output_file is None:

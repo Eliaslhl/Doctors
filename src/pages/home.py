@@ -26,36 +26,52 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
     Returns:
         Layout Dash de la page d'accueil
     """
-    # Calcul de statistiques via le module graphics
-    stats = create_statistics_cards(data)
-    
     return html.Div([
         html.H1("Dashboard - Vaccination Coverage", className='page-title'),
         html.Hr(),
         
-        # Section des statistiques principales
+        # 📊 Section des statistiques principales (FILTRÉES PAR ANNÉE UNIQUEMENT)
+        html.Div([
+            html.Div([
+                html.H3("📊 Statistiques Globales", style={'display': 'inline-block', 'marginRight': '10px', 'fontSize': '18px', 'color': '#2c3e50', 'marginBottom': '15px'}),
+                html.Span("Filtrées par année uniquement", 
+                         style={'backgroundColor': '#f39c12', 'color': 'white', 'padding': '4px 12px', 
+                                'borderRadius': '12px', 'fontSize': '11px', 'fontWeight': 'bold'})
+            ], style={'marginBottom': '10px'}),
+        ], className='row'),
+        
         html.Div([
             html.Div([
                 html.Div([
                     html.H3("Pays", className='stat-title'),
-                    html.H2(f"{stats['n_countries']}", className='stat-value')
+                    html.H2(id='stat-countries', children="—", className='stat-value')
                 ], className='card stat-card')
             ], className='col'),
             
             html.Div([
                 html.Div([
                     html.H3("Années", className='stat-title'),
-                    html.H2(f"{stats['n_years']}", className='stat-value')
+                    html.H2(id='stat-years', children="—", className='stat-value')
                 ], className='card stat-card')
             ], className='col'),
             
             html.Div([
                 html.Div([
                     html.H3("Couverture moyenne", className='stat-title'),
-                    html.H2(f"{stats['avg_coverage']:.1f}%", className='stat-value')
+                    html.H2(id='stat-coverage', children="—", className='stat-value')
                 ], className='card stat-card')
             ], className='col'),
         ], className='row stats-row'),
+        
+        # 🔄 Section titre pour graphiques filtrés
+        html.Div([
+            html.Div([
+                html.H3("🔄 Données Filtrées", style={'display': 'inline-block', 'marginRight': '10px', 'fontSize': '18px', 'color': '#2c3e50', 'marginTop': '30px', 'marginBottom': '15px'}),
+                html.Span("Affectés par les filtres de la sidebar", 
+                         style={'backgroundColor': '#27ae60', 'color': 'white', 'padding': '4px 12px', 
+                                'borderRadius': '12px', 'fontSize': '11px', 'fontWeight': 'bold'})
+            ], style={'marginBottom': '15px'}),
+        ], className='row'),
         
         # Pays par Couverture + Évolution Temporelle
         html.Div([
@@ -86,9 +102,6 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
         html.Div([
             html.H3("🔍 Exploration des Données", className='section-title', 
                    style={'marginTop': '30px', 'marginBottom': '10px', 'color': '#2c3e50'}),
-            html.P("Voici deux graphiques pour comparer différentes visualisations des mêmes données filtrées. "
-                   "Parfait pour une analyse multi-angle ! 📊",
-                   style={'color': '#7f8c8d', 'fontSize': '14px', 'marginBottom': '20px', 'fontStyle': 'italic'}),
         ], className='row'),
         
         # Graphique d'exploration 1 - Distribution
@@ -226,7 +239,33 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
 def register_callbacks(app, data: pd.DataFrame) -> None:
     """Enregistre tous les callbacks pour les graphiques hybrides (fixes + dynamiques)."""
     
-    # callback - Pays par Couverture
+    # 📊 CALLBACK pour les Statistiques Globales (filtrées par année uniquement)
+    @app.callback(
+        [
+            Output('stat-countries', 'children'),
+            Output('stat-years', 'children'),
+            Output('stat-coverage', 'children')
+        ],
+        [Input('global-year-filter', 'value')]
+    )
+    def update_stats(year_filter: str):
+        """Met à jour les statistiques globales selon le filtre année."""
+        # Filtrer uniquement par année
+        if year_filter == 'all':
+            filtered_data = data
+        else:
+            filtered_data = data[data['YEAR'] == int(year_filter)]
+        
+        # Calculer les stats
+        stats = create_statistics_cards(filtered_data)
+        
+        return (
+            f"{stats['n_countries']}",
+            f"{stats['n_years']}",
+            f"{stats['avg_coverage']:.1f}%"
+        )
+    
+    # 🔒 CALLBACK FIXE 1: Pays par Couverture
     @app.callback(
         Output('country-details-graph', 'figure'),
         [

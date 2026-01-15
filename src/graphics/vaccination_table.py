@@ -32,10 +32,10 @@ def create_vaccination_table(
             x=0.5, y=0.5, showarrow=False
         )
     
-    # Limiter le nombre de lignes
+    # Limite le nombre de lignes
     display_data = data.head(max_rows)
     
-    # Créer le tableau
+    # Crée le tableau
     fig = go.Figure(data=[go.Table(
         header=dict(
             values=list(display_data.columns),
