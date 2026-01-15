@@ -3,14 +3,13 @@ Carte géographique de la couverture vaccinale.
 Optimisée pour afficher le fond de carte mondial interactif (type OSM/Leaflet) SANS données réelles.
 """
 
+from typing import Optional
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-
 from config import PLOTLY_TEMPLATE
 
-
-def create_vaccination_map(data: pd.DataFrame, title: str | None = None) -> go.Figure:
+def create_vaccination_map(data: pd.DataFrame, title: Optional[str] = None) -> go.Figure:
     """
     Crée une carte de fond interactive (type OSM/Leaflet) centrée sur le monde.
     Crée une carte choroplèthe de la couverture vaccinale par pays.
@@ -22,39 +21,41 @@ def create_vaccination_map(data: pd.DataFrame, title: str | None = None) -> go.F
     Returns:
         Figure Plotly avec le fond de carte OSM interactif.
     """
-    
-    default_title = 'Carte mondiale interactive (Visuel OSM)'
-        # 1. Utilisation de données factices pour forcer l'affichage de la carte
-    dummy_data = {
-        'lat': [0], 
-        'lon': [0], 
-        'label': ['Centre du Monde']
-    }
-    dummy_df = pd.DataFrame(dummy_data)
-    
-    # 2. Création de la figure avec un point unique invisible
-    fig = px.scatter_mapbox(
-        dummy_df, 
-        lat="lat", 
-        lon="lon", 
-        hover_name="label",
-        zoom=1,
+    # 1. Vérification des données (comme dans ton autre fonction)
+    if 'NAME' not in data.columns or 'COVERAGE' not in data.columns or data.empty:
+        return go.Figure().add_annotation(
+            text="Aucune donnée disponible pour la carte",
+            xref="paper", yref="paper", x=0.5, y=0.5, showarrow=False
+        )
+
+    # 2. Préparation des données : Moyenne par pays
+    # On reset_index() pour que 'NAME' redevenue une colonne utilisable par Plotly
+    df_map = data.groupby('NAME')['COVERAGE'].mean().reset_index()
+
+    # 3. Création de la carte Choroplèthe
+    fig = px.choropleth(
+        data_frame=df_map,
+        locations="NAME",            # La colonne contenant les noms des pays
+        locationmode="country names", # Indique à Plotly d'utiliser les noms (France, Canada, etc.)
+        color="COVERAGE",             # La donnée qui définit la couleur
+        hover_name="NAME",            # Ce qui s'affiche au survol
+        color_continuous_scale=px.colors.sequential.Viridis, # Échelle de couleur (ex: Viridis, Plasma, Blues)
+        projection="natural earth",   # Type de vue (on peut bouger et zoomer dessus)
+        labels={'COVERAGE': 'Couverture (%)'}
     )
 
-    # 3. Configuration du layout pour le style et le centrage
+    # 4. Configuration du Layout et de la taille
+    default_title = 'Couverture vaccinale mondiale par pays'
     fig.update_layout(
         title={
             'text': title or default_title,
             'x': 0.5,
             'xanchor': 'center'
         },
-        
-        # Configuration clé pour le style Leaflet/OSM
-        mapbox_style="open-street-map",
-        mapbox_center={"lat": 0, "lon": 0}, # Centrage initial
-        mapbox_zoom=1, 
-        showlegend=False,
-        height=500,
-        template=PLOTLY_TEMPLATE
-    )    
+        template=PLOTLY_TEMPLATE,
+        margin={"r":0,"t":50,"l":0,"b":0}, # Optimise l'espace
+        # Cette partie permet de garder la carte "bougeable"
+        dragmode="pan" 
+    )
+
     return fig
