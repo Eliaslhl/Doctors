@@ -37,6 +37,24 @@ def create_sidebar(data: pd.DataFrame) -> html.Div:
             html.Div(
                 [
                     html.H3("Filtres", className="filter-section-title"),
+                    # Filtre par groupe (Pays/Régions)
+                    html.Div(
+                        [
+                            html.Label("Vue", className="filter-label"),
+                            dcc.Dropdown(
+                                id="global-group-filter",
+                                options=[  # type: ignore
+                                    {"label": "Tous", "value": "all"},
+                                    {"label": "Pays uniquement", "value": "COUNTRIES"},
+                                    {"label": "Régions WHO uniquement", "value": "WHO_REGIONS"},
+                                ],
+                                value="all",
+                                clearable=False,
+                                className="filter-dropdown",
+                            ),
+                        ],
+                        className="filter-group",
+                    ),
                     # Filtre par année
                     html.Div(
                         [

@@ -40,12 +40,12 @@ def create_vaccination_map(data: pd.DataFrame, title: str | None = None) -> go.F
     # 3. Création de la carte Choroplèthe
     fig = px.choropleth(
         data_frame=df_map,
-        locations="NAME",  # La colonne contenant les noms des pays
-        locationmode="country names",  # Indique à Plotly d'utiliser les noms (France, Canada, etc.)
-        color="COVERAGE",  # La donnée qui définit la couleur
-        hover_name="NAME",  # Ce qui s'affiche au survol
-        color_continuous_scale=px.colors.sequential.Viridis,  # Échelle de couleur (ex: Viridis, Plasma, Blues)
-        projection="natural earth",  # Type de vue (on peut bouger et zoomer dessus)
+        locations="NAME",
+        locationmode="country names",
+        color="COVERAGE",
+        hover_name="NAME",
+        color_continuous_scale=px.colors.sequential.Viridis,
+        projection="natural earth",
         labels={"COVERAGE": "Couverture (%)"},
     )
 

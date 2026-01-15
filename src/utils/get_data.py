@@ -51,6 +51,22 @@ def get_available_years(data: pd.DataFrame) -> list[int]:
     return sorted(data["YEAR"].dropna().unique().tolist())
 
 
+def get_available_groups(data: pd.DataFrame) -> list[str]:
+    """
+    Récupère la liste des groupes disponibles (COUNTRIES, WHO_REGIONS, etc.).
+
+    Args:
+        data: DataFrame contenant les données
+
+    Returns:
+        Liste triée des groupes uniques
+    """
+    if "GROUP" not in data.columns:
+        return []
+
+    return sorted(data["GROUP"].dropna().unique().tolist())
+
+
 def get_available_countries(data: pd.DataFrame) -> list[str]:
     """
     Récupère la liste des pays disponibles dans les données.
@@ -65,6 +81,23 @@ def get_available_countries(data: pd.DataFrame) -> list[str]:
         return []
 
     return sorted(data["NAME"].dropna().unique().tolist())
+
+
+def get_available_regions(data: pd.DataFrame) -> list[str]:
+    """
+    Récupère la liste des régions WHO disponibles dans les données.
+
+    Args:
+        data: DataFrame contenant les données
+
+    Returns:
+        Liste triée des régions uniques
+    """
+    if "NAME" not in data.columns or "GROUP" not in data.columns:
+        return []
+
+    regions = data[data["GROUP"] == "WHO_REGIONS"]["NAME"].dropna().unique()
+    return sorted(regions.tolist())
 
 
 def get_available_antigens(data: pd.DataFrame) -> list[str]:
@@ -101,6 +134,7 @@ def get_available_coverage_categories(data: pd.DataFrame) -> list[str]:
 
 def get_filtered_data(
     data: pd.DataFrame,
+    group: str | None = None,
     year: int | None = None,
     country: str | None = None,
     antigen: str | None = None,
@@ -111,8 +145,9 @@ def get_filtered_data(
 
     Args:
         data: DataFrame contenant les données
+        group: Groupe à filtrer (COUNTRIES, WHO_REGIONS, etc.) (optionnel)
         year: Année à filtrer (optionnel)
-        country: Pays à filtrer (optionnel)
+        country: Pays/Région à filtrer (optionnel)
         antigen: Antigène à filtrer (optionnel)
         coverage_category: Catégorie de couverture à filtrer (optionnel)
 
@@ -120,6 +155,9 @@ def get_filtered_data(
         DataFrame filtré
     """
     filtered = data.copy()
+
+    if group is not None and "GROUP" in filtered.columns:
+        filtered = filtered[filtered["GROUP"] == group]
 
     if year is not None and "YEAR" in filtered.columns:
         filtered = filtered[filtered["YEAR"] == year]
