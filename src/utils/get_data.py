@@ -136,26 +136,3 @@ def get_filtered_data(
     
     return filtered
 
-
-def get_data_summary(data: pd.DataFrame) -> dict:
-    """
-    Récupère un résumé des données.
-    
-    Args:
-        data: DataFrame contenant les données
-        
-    Returns:
-        Dictionnaire avec les statistiques résumées
-    """
-    summary = {
-        "total_records": len(data),
-        "total_countries": data["NAME"].nunique() if "NAME" in data.columns else 0,
-        "total_antigens": data["ANTIGEN"].nunique() if "ANTIGEN" in data.columns else 0,
-        "year_range": (
-            int(data["YEAR"].min()), 
-            int(data["YEAR"].max())
-        ) if "YEAR" in data.columns else (None, None),
-        "coverage_categories": data["COVERAGE_CATEGORY"].nunique() if "COVERAGE_CATEGORY" in data.columns else 0
-    }
-    
-    return summary
