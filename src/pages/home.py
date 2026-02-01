@@ -167,7 +167,7 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
         ),
     ],
     className="row",
-    style={"display": "flex", "flexDirection": "row", "padding": "20px"}
+    style={"display": "flex", "flexDirection": "row"}
 ),
             # Pays par Couverture + Évolution Temporelle
             html.Div(
