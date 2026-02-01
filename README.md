@@ -1,6 +1,6 @@
-# Doctors Dashboard
+# Vaccination Coverage Dashboard
 
-Application web interactive développée avec **Dash** et **Plotly** pour la visualisation et l'analyse de données médicales.
+Application web interactive développée avec **Dash** et **Plotly** pour visualiser et analyser des données de couverture vaccinale (source OMS/WHO).
 
 ![Dash](https://img.shields.io/badge/Dash-2.14.2-blue)
 ![Plotly](https://img.shields.io/badge/Plotly-5.18.0-green)
@@ -23,17 +23,7 @@ Application web interactive développée avec **Dash** et **Plotly** pour la vis
 - [Guide du développeur](#-guide-du-développeur)
 - [Rapport d'analyse](#-rapport-danalyse)
 - [Contribution](#-contribution)
-- [Contact](#-contact)
 - [Licence et Copyright](#-licence-et-copyright)
-
-## 📚 Documentation complémentaire
-
-- **[GUIDE_UTILISATEUR.md](GUIDE_UTILISATEUR.md)** - Guide complet d'utilisation pas-à-pas
-- **[CHANGELOG.md](CHANGELOG.md)** - Historique des versions et améliorations
-- **[RESUME_AMELIORATIONS.md](RESUME_AMELIORATIONS.md)** - Synthèse détaillée des améliorations v2.0
-- **[DEMO_VISUELLE.md](DEMO_VISUELLE.md)** - Démonstration visuelle des changements
-
----
 
 ## ✨ Fonctionnalités
 
@@ -43,7 +33,6 @@ Application web interactive développée avec **Dash** et **Plotly** pour la vis
 - 📊 **Visualisations interactives avancées** avec Plotly
 - 🎯 **Tooltips enrichis** affichant statistiques détaillées (moyenne, écart-type, quartiles)
 - 🎨 **Interface moderne** avec CSS personnalisé et animations fluides
-- 📱 **Design responsive** pour mobile et desktop
 
 ### Visualisations et analyses
 
@@ -132,7 +121,7 @@ Doctors/
 1. **Cloner le projet** (ou télécharger les fichiers)
 
 ```bash
-cd /Users/elias/Documents/E3FI/multidisciplinaire/Doctors
+cd Doctors
 ```
 
 2. **Créer un environnement virtuel** (recommandé)
@@ -146,7 +135,7 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Sur Windows:
-# venv\Scripts\activate
+venv\Scripts\activate
 ```
 
 3. **Installer les dépendances**
@@ -158,7 +147,11 @@ pip install -r requirements.txt
 4. **Nettoyer les données**
 
 ```bash
+# Sur macOS/Linux:
 PYTHONPATH=. venv/bin/python src/utils/clean_data.py
+
+# Sur Windows:
+venv\Scripts\python
 ```
 
 ---
@@ -609,6 +602,18 @@ git push origin feature/ma-fonctionnalite
 
 ## 📈 Rapport d'analyse
 
+### Objectifs
+
+Identifier les tendances globales de couverture vaccinale, comparer les pays et régions WHO,
+et observer l’évolution temporelle selon l’antigène sélectionné.
+
+### Méthodologie.
+
+L’analyse repose sur des statistiques descriptives (moyenne, médiane, écart-type, quartiles),
+des comparaisons géographiques (carte choroplèthe, top pays) et temporelles (courbe par année).
+Les résultats sont explorables via des filtres interactifs (année, pays/région, antigène).
+
+
 ### Métriques de performance
 
 - **Temps de chargement initial** : ~2-3 secondes (30 556 enregistrements)
@@ -661,11 +666,9 @@ git push origin feature/ma-fonctionnalite
 2. **Fonctionnalités**
    - Export des graphiques en PDF/PNG
    - Comparaison de plusieurs pays côte à côte
-   - Prédictions basées sur les tendances
    - Alertes pour les baisses de couverture
 
 3. **UX**
-   - Dark mode
    - Sauvegarder les configurations de filtres
    - Partage de vues spécifiques via URL
 
@@ -680,14 +683,6 @@ Pour contribuer au projet :
 3. Commit vos changements (`git commit -m 'Ajout nouvelle fonctionnalité'`)
 4. Push vers la branche (`git push feature/nouvelle-fonctionnalite`)
 5. Ouvrir une Pull Request
-
----
-
-## 📧 Contact
-
-Pour toute question ou suggestion :
-
-- **GitHub** : jsp
 
 ---
 
@@ -708,11 +703,13 @@ Ce projet est développé dans un cadre éducatif.
 **Institution** :
 
 - ESIEE Paris
-- Promotion E3FI 2023-2026
+- Promotion E3FI 2025-2026
 
 ### Utilisation des données
 
-Les données de couverture vaccinale sont utilisées à des fins éducatives et d'analyse. Les sources originales des données doivent être créditées lors de toute utilisation publique.
+Les données de couverture vaccinale sont utilisées à des fins éducatives et d'analyse. Les sources originales des données proviennent de l'Organisation mondiale de la Santé (OMS).
+[Immunization coverage - WHO](https://www.who.int/fr/news-room/fact-sheets/detail/immunization-coverage)
+
 
 ### Crédits
 
