@@ -1,17 +1,10 @@
-# Framework Dash et Plotly
-dash>=2.14.0
-dash-bootstrap-components>=1.5.0
-plotly>=5.18.0
+# Framework Dash et Plotly (OBLIGATOIRE)
+dash==3.4.0
+plotly==6.5.2
 
-# Data manipulation
-pandas>=2.2.0
-numpy>=1.26.0
+# Data manipulation (OBLIGATOIRE)
+pandas==3.0.0
+numpy==2.2.1
 
-openpyxl>=3.1.0  # Pour lire les fichiers Excel
-
-# Utilities
-python-dotenv>=1.0.0
-
-# Development tools
-ruff>=0.8.0  # Linter + Formatteur Python
-# pytest>=7.4.3
+# Development tools (OPTIONNEL)
+ruff==0.14.14  # Linter + Formatteur Python

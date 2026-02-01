@@ -37,6 +37,24 @@ def create_sidebar(data: pd.DataFrame) -> html.Div:
             html.Div(
                 [
                     html.H3("Filtres", className="filter-section-title"),
+                    # Filtre par groupe (Pays/Régions)
+                    html.Div(
+                        [
+                            html.Label("Vue", className="filter-label"),
+                            dcc.Dropdown(
+                                id="global-group-filter",
+                                options=[  # type: ignore
+                                    {"label": "Tous", "value": "all"},
+                                    {"label": "Pays uniquement", "value": "COUNTRIES"},
+                                    {"label": "Régions WHO uniquement", "value": "WHO_REGIONS"},
+                                ],
+                                value="all",
+                                clearable=False,
+                                className="filter-dropdown",
+                            ),
+                        ],
+                        className="filter-group",
+                    ),
                     # Filtre par année
                     html.Div(
                         [
@@ -107,9 +125,37 @@ def create_sidebar(data: pd.DataFrame) -> html.Div:
                         ],
                         className="filter-group",
                     ),
+                    # Bouton pour appliquer les filtres
+                    html.Div(
+                        [
+                            html.Button(
+                                "🔍 Appliquer les filtres",
+                                id="apply-filters-button",
+                                n_clicks=0,
+                                className="apply-filters-btn",
+                                style={
+                                    "width": "100%",
+                                    "padding": "12px 20px",
+                                    "backgroundColor": "#27ae60",
+                                    "color": "white",
+                                    "border": "none",
+                                    "borderRadius": "8px",
+                                    "fontSize": "14px",
+                                    "fontWeight": "bold",
+                                    "cursor": "pointer",
+                                    "marginTop": "20px",
+                                    "transition": "all 0.3s ease",
+                                    "boxShadow": "0 2px 4px rgba(0,0,0,0.1)",
+                                },
+                            ),
+                        ],
+                        className="filter-group",
+                    ),
                 ],
                 className="filters-container",
             ),
+            # Store pour conserver les filtres validés
+            dcc.Store(id="validated-filters", data={}),
             # Statistiques rapides
             html.Div(
                 [
