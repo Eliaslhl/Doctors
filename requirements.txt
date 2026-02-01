@@ -1,6 +1,11 @@
+# Environnement validé avec Python 3.8+
+# Dépendances nécessaires au fonctionnement et au développement du dashboard
+
 # Framework Dash et Plotly (OBLIGATOIRE)
 dash==3.4.0
 plotly==6.5.2
+dash-bootstrap-components==1.5.0
+
 
 # Data manipulation (OBLIGATOIRE)
 pandas==3.0.0
@@ -8,3 +13,8 @@ numpy==2.2.1
 
 # Development tools (OPTIONNEL)
 ruff==0.14.14  # Linter + Formatteur Python
+
+dash-bootstrap-components==1.5.0
+
+# Backend web (utilisé par Dash)
+flask>=2.2
