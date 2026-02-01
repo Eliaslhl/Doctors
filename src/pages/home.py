@@ -140,22 +140,35 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
                 className="row",
             ),
             # Section de la carte de vaccination
-            html.Div(
-                [
-                    html.Div(
-                        [
-                            html.H3("Carte de la couverture vaccinale", className="card-title"),
-                            dcc.Graph(
-                                id="vaccination-map",
-                                config=PLOTLY_CONFIG,  # type: ignore
-                                style={"height": "500px", "width": "75vw", "text-align": "center"},
-                            ),
-                        ],
-                        className="card map-container",
-                    )
-                ],
-                className="row",
-            ),
+    html.Div(
+    [
+        html.Div(
+            [
+                html.H3("Carte de la couverture vaccinale", className="card-title"),
+                dcc.Graph(
+                    id="vaccination-map",
+                    config=PLOTLY_CONFIG,
+                    style={"height": "500px"},
+                ),
+            ],
+            className="card map-container",
+            style={"flex": "3", "marginRight": "15px"}
+        ),
+        html.Div(
+            [
+                html.H3("Détails du Pays", className="card-title"),
+                html.Hr(),
+                html.Div(id="map-side-panel", children=[
+                    html.P("Cliquez sur un pays pour voir les statistiques.", className="text-muted")
+                ])
+            ],
+            className="card",
+            style={"flex": "1", "padding": "20px"}
+        ),
+    ],
+    className="row",
+    style={"display": "flex", "flexDirection": "row", "padding": "20px"}
+),
             # Pays par Couverture + Évolution Temporelle
             html.Div(
                 [
@@ -563,6 +576,39 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
             )
 
         return create_vaccination_map(filtered_data)
+    
+    # Callback pour le panneau latéral
+    @app.callback(
+        Output("map-side-panel", "children"),
+        [Input("vaccination-map", "clickData")]
+    )
+    def update_side_panel(clickData):
+        if not clickData:
+            return html.P("Cliquez sur un pays pour voir les statistiques.", className="text-muted")
+
+        # Extraction des données envoyées par la carte
+        point = clickData["points"][0]
+        country_name = point.get("location", "Inconnu")
+        coverage = point.get("z", 0)
+
+        return html.Div([
+            html.H4(country_name, style={"color": "#007bff", "marginBottom": "20px"}),
+            
+            html.Div([
+                html.Label("Couverture Moyenne", style={"fontWeight": "bold"}),
+                html.H2(f"{coverage:.1f}%", style={
+                    "color": "#1a9850" if coverage > 80 else "#d73027",
+                    "marginTop": "5px"
+                }),
+            ], className="stat-box"),
+            
+            html.Hr(),
+            
+            html.P([
+                html.I(className="bi bi-info-circle me-2"),
+                "Ce taux représente la moyenne basée sur les filtres actuellement appliqués (antigènes, années, etc.)."
+            ], style={"fontSize": "0.85rem", "fontStyle": "italic"})
+        ])
 
     # Callback pour le graphique des pays par couverture
     @app.callback(
