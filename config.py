@@ -15,34 +15,10 @@ BASE_DIR: Path = Path(__file__).parent
 DATA_DIR: Path = BASE_DIR / "data"
 RAW_DATA_DIR: Path = DATA_DIR / "raw"
 CLEANED_DATA_DIR: Path = DATA_DIR / "cleaned"
-ASSETS_DIR: Path = BASE_DIR / "assets"
-IMAGES_DIR: Path = BASE_DIR / "images"
-
-
-# ========================================
-# CONFIGURATION SERVEUR
-# ========================================
-
-# Configuration par défaut du serveur
-DEFAULT_HOST: str = "127.0.0.1"
-DEFAULT_PORT: int = 8050
-DEFAULT_DEBUG: bool = False
 
 
 # ========================================
 # CONFIGURATION DASH
-# ========================================
-
-# Titre de l'application
-APP_TITLE: str = "Vaccination Coverage Dashboard"
-APP_UPDATE_TITLE: str = "Chargement..."
-
-# Suppression des exceptions de callback
-SUPPRESS_CALLBACK_EXCEPTIONS: bool = True
-
-
-# ========================================
-# CONFIGURATION DES GRAPHIQUES
 # ========================================
 
 # Configuration par défaut de Plotly
@@ -73,14 +49,3 @@ COLOR_PALETTE: list[str] = [
 
 # Template des graphiques
 PLOTLY_TEMPLATE: str = "plotly_white"
-
-# ========================================
-# MESSAGES
-# ========================================
-
-MESSAGES: dict[str, str] = {
-    "no_data": "Aucune donnée disponible",
-    "loading": "Chargement en cours...",
-    "error": "Une erreur s'est produite",
-    "success": "Opération réussie",
-}

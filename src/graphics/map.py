@@ -1,6 +1,5 @@
 """
 Carte géographique de la couverture vaccinale.
-Optimisée pour afficher le fond de carte mondial interactif (type OSM/Leaflet) SANS données réelles.
 """
 
 import pandas as pd
@@ -12,17 +11,15 @@ from config import PLOTLY_TEMPLATE
 
 def create_vaccination_map(data: pd.DataFrame, title: str | None = None) -> go.Figure:
     """
-    Crée une carte de fond interactive (type OSM/Leaflet) centrée sur le monde.
     Crée une carte choroplèthe de la couverture vaccinale par pays.
 
     Args:
-        data: DataFrame (utilisé uniquement pour le fond de carte ou des données factices)
+        data: DataFrame contenant les données de vaccination
         title: Titre personnalisé (optionnel)
 
     Returns:
-        Figure Plotly avec le fond de carte OSM interactif.
+        Figure Plotly avec la carte choroplèthe interactive
     """
-    # 1. Vérification des données (comme dans ton autre fonction)
     if "NAME" not in data.columns or "COVERAGE" not in data.columns or data.empty:
         return go.Figure().add_annotation(
             text="Aucune donnée disponible pour la carte",
@@ -33,29 +30,40 @@ def create_vaccination_map(data: pd.DataFrame, title: str | None = None) -> go.F
             showarrow=False,
         )
 
-    # 2. Préparation des données : Moyenne par pays
-    # On reset_index() pour que 'NAME' redevenue une colonne utilisable par Plotly
-    df_map = data.groupby("NAME")["COVERAGE"].mean().reset_index()
+    # Préparation des données : Moyenne par pays
+    df_map = data.groupby("NAME").agg({"COVERAGE": "mean", "YEAR": "count"}).reset_index()
+    df_map.columns = ["NAME", "COVERAGE", "N_RECORDS"]
 
-    # 3. Création de la carte Choroplèthe
+    # Création de la carte choroplèthe avec tooltips enrichis
     fig = px.choropleth(
         data_frame=df_map,
         locations="NAME",
         locationmode="country names",
         color="COVERAGE",
         hover_name="NAME",
-        color_continuous_scale=px.colors.sequential.Viridis,
+        hover_data={
+            "COVERAGE": ":.1f",
+            "N_RECORDS": True,
+            "NAME": False,
+        },
+        color_continuous_scale=[
+            [0.0, "#d73027"],  # Rouge pour faible couverture
+            [0.5, "#fee08b"],  # Jaune pour couverture moyenne
+            [1.0, "#1a9850"],  # Vert pour haute couverture
+        ],
         projection="natural earth",
-        labels={"COVERAGE": "Couverture (%)"},
+        labels={
+            "COVERAGE": "Couverture moyenne (%)",
+            "N_RECORDS": "Nombre d'enregistrements",
+        },
     )
 
-    # 4. Configuration du Layout et de la taille
+    # Configuration du layout
     default_title = "Couverture vaccinale mondiale par pays"
     fig.update_layout(
         title={"text": title or default_title, "x": 0.5, "xanchor": "center"},
         template=PLOTLY_TEMPLATE,
-        margin={"r": 0, "t": 50, "l": 0, "b": 0},  # Optimise l'espace
-        # Cette partie permet de garder la carte "bougeable"
+        margin={"r": 0, "t": 50, "l": 0, "b": 0},
         dragmode="pan",
     )
 

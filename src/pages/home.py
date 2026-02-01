@@ -31,7 +31,6 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
         [
             html.H1("Dashboard - Vaccination Coverage", className="page-title"),
             html.Hr(),
-            # 📊 Section des statistiques principales (FILTRÉES PAR ANNÉE UNIQUEMENT)
             html.Div(
                 [
                     html.Div(
@@ -108,7 +107,6 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
                 ],
                 className="row stats-row",
             ),
-            # 🔄 Section titre pour graphiques filtrés
             html.Div(
                 [
                     html.Div(
@@ -201,7 +199,6 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
                 ],
                 className="row",
             ),
-            # Graphiques d'Exploration
             html.Div(
                 [
                     html.H3(
@@ -212,7 +209,6 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
                 ],
                 className="row",
             ),
-            # Graphique d'exploration 1 - Distribution
             html.Div(
                 [
                     html.Div(
@@ -286,7 +282,6 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
                         ],
                         className="col",
                     ),
-                    # Graphique d'exploration 2 - Composition
                     html.Div(
                         [
                             html.Div(
@@ -443,7 +438,46 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
 def register_callbacks(app, data: pd.DataFrame) -> None:
     """Enregistre tous les callbacks pour les graphiques hybrides (fixes + dynamiques)."""
 
-    # � CALLBACK pour mettre à jour les options du dropdown Pays/Régions
+    # Callback pour stocker les filtres validés lors du clic sur le bouton
+    @app.callback(
+        Output("validated-filters", "data"),
+        [Input("apply-filters-button", "n_clicks")],
+        [
+            Input("global-group-filter", "value"),
+            Input("global-year-filter", "value"),
+            Input("global-country-filter", "value"),
+            Input("global-antigen-filter", "value"),
+            Input("global-category-filter", "value"),
+        ],
+    )
+    def store_validated_filters(
+        n_clicks: int,
+        group_filter: str,
+        year_filter: str,
+        country_filter: str,
+        antigen_filter: str,
+        category_filter: str,
+    ):
+        """Stocke les valeurs des filtres quand le bouton est cliqué."""
+        if n_clicks == 0:
+            # Initialisation avec les valeurs par défaut
+            return {
+                "group": "all",
+                "year": "all",
+                "country": "all",
+                "antigen": "all",
+                "category": "all",
+            }
+
+        return {
+            "group": group_filter,
+            "year": year_filter,
+            "country": country_filter,
+            "antigen": antigen_filter,
+            "category": category_filter,
+        }
+
+    # Callback pour mettre à jour les options du dropdown Pays/Régions
     @app.callback(
         [
             Output("global-country-filter", "options"),
@@ -474,17 +508,19 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
 
         return options, "all"
 
-    # �📊 CALLBACK pour les Statistiques Globales (filtrées par année uniquement)
+    # Callback pour les Statistiques Globales (filtrées par année uniquement)
     @app.callback(
         [
             Output("stat-countries", "children"),
             Output("stat-years", "children"),
             Output("stat-coverage", "children"),
         ],
-        [Input("global-year-filter", "value")],
+        [Input("validated-filters", "data")],
     )
-    def update_stats(year_filter: str):
-        """Met à jour les statistiques globales selon le filtre année."""
+    def update_stats(validated_filters: dict):
+        """Met à jour les statistiques globales selon le filtre année validé."""
+        year_filter = validated_filters.get("year", "all")
+        
         # Filtrer uniquement par année
         filtered_data = data if year_filter == "all" else data[data["YEAR"] == int(year_filter)]
 
@@ -493,25 +529,19 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
 
         return (f"{stats['n_countries']}", f"{stats['n_years']}", f"{stats['avg_coverage']:.1f}%")
 
-    # �️ CALLBACK CARTE: Carte de vaccination
+    # Callback pour la carte de vaccination
     @app.callback(
         Output("vaccination-map", "figure"),
-        [
-            Input("global-group-filter", "value"),
-            Input("global-year-filter", "value"),
-            Input("global-country-filter", "value"),
-            Input("global-antigen-filter", "value"),
-            Input("global-category-filter", "value"),
-        ],
+        [Input("validated-filters", "data")],
     )
-    def update_vaccination_map(
-        group_filter: str,
-        year_filter: str,
-        country_filter: str,
-        antigen_filter: str,
-        category_filter: str,
-    ) -> go.Figure:
-        """Met à jour la carte de vaccination selon les filtres."""
+    def update_vaccination_map(validated_filters: dict) -> go.Figure:
+        """Met à jour la carte de vaccination selon les filtres validés."""
+        group_filter = validated_filters.get("group", "all")
+        year_filter = validated_filters.get("year", "all")
+        country_filter = validated_filters.get("country", "all")
+        antigen_filter = validated_filters.get("antigen", "all")
+        category_filter = validated_filters.get("category", "all")
+        
         filtered_data = get_filtered_data(
             data=data,
             group=group_filter if group_filter != "all" else None,
@@ -534,25 +564,19 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
 
         return create_vaccination_map(filtered_data)
 
-    # �🔒 CALLBACK FIXE 1: Pays par Couverture
+    # Callback pour le graphique des pays par couverture
     @app.callback(
         Output("country-details-graph", "figure"),
-        [
-            Input("global-group-filter", "value"),
-            Input("global-year-filter", "value"),
-            Input("global-country-filter", "value"),
-            Input("global-antigen-filter", "value"),
-            Input("global-category-filter", "value"),
-        ],
+        [Input("validated-filters", "data")],
     )
-    def update_country_details(
-        group_filter: str,
-        year_filter: str,
-        country_filter: str,
-        antigen_filter: str,
-        category_filter: str,
-    ) -> go.Figure:
-        """Met à jour le graphique des pays par couverture (fixe)."""
+    def update_country_details(validated_filters: dict) -> go.Figure:
+        """Met à jour le graphique des pays par couverture selon les filtres validés."""
+        group_filter = validated_filters.get("group", "all")
+        year_filter = validated_filters.get("year", "all")
+        country_filter = validated_filters.get("country", "all")
+        antigen_filter = validated_filters.get("antigen", "all")
+        category_filter = validated_filters.get("category", "all")
+        
         filtered_data = get_filtered_data(
             data=data,
             group=group_filter if group_filter != "all" else None,
@@ -574,25 +598,19 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
 
         return create_country_details(filtered_data, top_n=10)
 
-    # Évolution Temporelle
+    # Callback pour l'évolution temporelle
     @app.callback(
         Output("timed-count-graph", "figure"),
-        [
-            Input("global-group-filter", "value"),
-            Input("global-year-filter", "value"),
-            Input("global-country-filter", "value"),
-            Input("global-antigen-filter", "value"),
-            Input("global-category-filter", "value"),
-        ],
+        [Input("validated-filters", "data")],
     )
-    def update_timed_count(
-        group_filter: str,
-        year_filter: str,
-        country_filter: str,
-        antigen_filter: str,
-        category_filter: str,
-    ) -> go.Figure:
-        """Met à jour le graphique d'évolution temporelle (fixe)."""
+    def update_timed_count(validated_filters: dict) -> go.Figure:
+        """Met à jour le graphique d'évolution temporelle selon les filtres validés."""
+        group_filter = validated_filters.get("group", "all")
+        year_filter = validated_filters.get("year", "all")
+        country_filter = validated_filters.get("country", "all")
+        antigen_filter = validated_filters.get("antigen", "all")
+        category_filter = validated_filters.get("category", "all")
+        
         filtered_data = get_filtered_data(
             data=data,
             group=group_filter if group_filter != "all" else None,
@@ -614,27 +632,22 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
 
         return create_timed_count(filtered_data, time_column="YEAR", value_column="COVERAGE")
 
-    # callback - Graphique d'Exploration 1
+    # Callback pour le graphique d'exploration 1
     @app.callback(
         Output("exploration-graph-1", "figure"),
         [
             Input("graph-type-1", "value"),
-            Input("global-group-filter", "value"),
-            Input("global-year-filter", "value"),
-            Input("global-country-filter", "value"),
-            Input("global-antigen-filter", "value"),
-            Input("global-category-filter", "value"),
+            Input("validated-filters", "data"),
         ],
     )
-    def update_exploration_1(
-        graph_type: str,
-        group_filter: str,
-        year_filter: str,
-        country_filter: str,
-        antigen_filter: str,
-        category_filter: str,
-    ) -> go.Figure:
-        """Met à jour le graphique d'exploration 1 (Distribution) selon le type sélectionné."""
+    def update_exploration_1(graph_type: str, validated_filters: dict) -> go.Figure:
+        """Met à jour le graphique d'exploration 1 (Distribution) selon les filtres validés."""
+        group_filter = validated_filters.get("group", "all")
+        year_filter = validated_filters.get("year", "all")
+        country_filter = validated_filters.get("country", "all")
+        antigen_filter = validated_filters.get("antigen", "all")
+        category_filter = validated_filters.get("category", "all")
+        
         filtered_data = get_filtered_data(
             data=data,
             group=group_filter if group_filter != "all" else None,
@@ -654,7 +667,6 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
                 showarrow=False,
             )
 
-        # callback - Graphique 1 : Distribution uniquement (Histogram ou Boxplot)
         if graph_type == "histogram":
             return create_statistics_histogram(filtered_data, column="COVERAGE", nbins=20)
         elif graph_type == "boxplot":
@@ -671,27 +683,22 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
                 showarrow=False,
             )
 
-    # callback - Graphique d'Exploration 2
+    # Callback pour le graphique d'exploration 2
     @app.callback(
         Output("exploration-graph-2", "figure"),
         [
             Input("graph-type-2", "value"),
-            Input("global-group-filter", "value"),
-            Input("global-year-filter", "value"),
-            Input("global-country-filter", "value"),
-            Input("global-antigen-filter", "value"),
-            Input("global-category-filter", "value"),
+            Input("validated-filters", "data"),
         ],
     )
-    def update_exploration_2(
-        graph_type: str,
-        group_filter: str,
-        year_filter: str,
-        country_filter: str,
-        antigen_filter: str,
-        category_filter: str,
-    ) -> go.Figure:
-        """Met à jour le graphique d'exploration 2 (Composition) selon le type sélectionné."""
+    def update_exploration_2(graph_type: str, validated_filters: dict) -> go.Figure:
+        """Met à jour le graphique d'exploration 2 (Composition) selon les filtres validés."""
+        group_filter = validated_filters.get("group", "all")
+        year_filter = validated_filters.get("year", "all")
+        country_filter = validated_filters.get("country", "all")
+        antigen_filter = validated_filters.get("antigen", "all")
+        category_filter = validated_filters.get("category", "all")
+        
         filtered_data = get_filtered_data(
             data=data,
             group=group_filter if group_filter != "all" else None,
@@ -711,7 +718,6 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
                 showarrow=False,
             )
 
-        # Graphique 2 : Composition uniquement (Pie Chart ou TreeMap)
         if graph_type == "pie":
             return create_pie_chart(filtered_data, column="COVERAGE_CATEGORY")
         elif graph_type == "treemap":

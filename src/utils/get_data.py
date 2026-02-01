@@ -51,22 +51,6 @@ def get_available_years(data: pd.DataFrame) -> list[int]:
     return sorted(data["YEAR"].dropna().unique().tolist())
 
 
-def get_available_groups(data: pd.DataFrame) -> list[str]:
-    """
-    Récupère la liste des groupes disponibles (COUNTRIES, WHO_REGIONS, etc.).
-
-    Args:
-        data: DataFrame contenant les données
-
-    Returns:
-        Liste triée des groupes uniques
-    """
-    if "GROUP" not in data.columns:
-        return []
-
-    return sorted(data["GROUP"].dropna().unique().tolist())
-
-
 def get_available_countries(data: pd.DataFrame) -> list[str]:
     """
     Récupère la liste des pays disponibles dans les données.

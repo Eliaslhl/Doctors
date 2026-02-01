@@ -48,7 +48,7 @@ def create_statistics_histogram(
     data: pd.DataFrame, column: str = "COVERAGE", nbins: int = 30, title: str | None = None
 ) -> go.Figure:
     """
-    Crée un histogramme pour visualiser la distribution statistique.
+    Crée un histogramme pour visualiser la distribution statistique avec annotations.
 
     Args:
         data: DataFrame contenant les données de vaccination
@@ -69,11 +69,37 @@ def create_statistics_histogram(
             showarrow=False,
         )
 
+    # Calcul des statistiques descriptives
+    mean_val = data[column].mean()
+    median_val = data[column].median()
+    std_val = data[column].std()
+
     fig = go.Figure(
-        data=[go.Histogram(x=data[column], nbinsx=nbins, marker_color=COLOR_PALETTE[0])]
+        data=[go.Histogram(
+            x=data[column],
+            nbinsx=nbins,
+            marker_color=COLOR_PALETTE[0],
+            hovertemplate="Intervalle: %{x}<br>Fréquence: %{y}<extra></extra>",
+        )]
     )
 
-    default_title = f"Distribution statistique - {column}"
+    # Ajout des lignes de statistiques
+    fig.add_vline(
+        x=mean_val,
+        line_dash="dash",
+        line_color="red",
+        annotation_text=f"Moyenne: {mean_val:.1f}",
+        annotation_position="top",
+    )
+    fig.add_vline(
+        x=median_val,
+        line_dash="dot",
+        line_color="green",
+        annotation_text=f"Médiane: {median_val:.1f}",
+        annotation_position="top",
+    )
+
+    default_title = f"Distribution statistique - {column} (σ={std_val:.1f})"
     fig.update_layout(
         title=title or default_title,
         xaxis_title=column,
@@ -92,7 +118,7 @@ def create_statistics_boxplot(
     title: str | None = None,
 ) -> go.Figure:
     """
-    Crée un boxplot pour les statistiques descriptives.
+    Crée un boxplot pour les statistiques descriptives avec informations détaillées.
 
     Args:
         data: DataFrame contenant les données de vaccination
@@ -114,23 +140,43 @@ def create_statistics_boxplot(
         )
 
     if group_by and group_by in data.columns:
-        # Boxplot groupé
+        # Boxplot groupé avec statistiques détaillées
         fig = go.Figure()
-        for i, category in enumerate(data[group_by].unique()):
+        for i, category in enumerate(sorted(data[group_by].unique())):
             category_data = data[data[group_by] == category][column]
             fig.add_trace(
                 go.Box(
                     y=category_data,
                     name=str(category),
                     marker_color=COLOR_PALETTE[i % len(COLOR_PALETTE)],
+                    boxmean='sd',  # Affiche la moyenne et l'écart-type
+                    hovertemplate=(
+                        "<b>%{fullData.name}</b><br>"
+                        "Maximum: %{y}<br>"
+                        "Q3: %{q3}<br>"
+                        "Médiane: %{median}<br>"
+                        "Q1: %{q1}<br>"
+                        "Minimum: %{y}<br>"
+                        "<extra></extra>"
+                    ),
                 )
             )
         default_title = f"Statistiques de {column} par {group_by}"
     else:
-        # Boxplot simple
-        fig = go.Figure(data=[go.Box(y=data[column], marker_color=COLOR_PALETTE[0])])
+        # Boxplot simple avec statistiques
+        fig = go.Figure(data=[go.Box(
+            y=data[column],
+            marker_color=COLOR_PALETTE[0],
+            boxmean='sd',
+            name=column,
+        )])
         default_title = f"Statistiques descriptives - {column}"
 
-    fig.update_layout(title=title or default_title, yaxis_title=column, template=PLOTLY_TEMPLATE)
+    fig.update_layout(
+        title=title or default_title,
+        yaxis_title=column,
+        template=PLOTLY_TEMPLATE,
+        showlegend=True if group_by else False,
+    )
 
     return fig

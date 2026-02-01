@@ -64,23 +64,56 @@ def create_timed_count(
     else:
         # Évolution globale
         if aggregation == "mean":
-            time_data = data.groupby(time_column)[value_column].mean().reset_index()
+            time_stats = data.groupby(time_column)[value_column].agg(['mean', 'std', 'count']).reset_index()
+            time_data = time_stats
+            y_col = 'mean'
         elif aggregation == "sum":
             time_data = data.groupby(time_column)[value_column].sum().reset_index()
+            y_col = value_column
         else:  # count
             time_data = data.groupby(time_column).size().reset_index(name=value_column)
+            y_col = value_column
 
         default_title = f"Évolution de {value_column} dans le temps"
-        fig = px.line(
-            time_data,
-            x=time_column,
-            y=value_column,
+        
+        fig = go.Figure()
+        
+        if aggregation == "mean":
+            # Ligne principale avec zone d'intervalle de confiance
+            fig.add_trace(go.Scatter(
+                x=time_data[time_column],
+                y=time_data[y_col],
+                mode='lines+markers',
+                name='Moyenne',
+                line=dict(color=COLOR_PALETTE[0], width=3),
+                marker=dict(size=8),
+                hovertemplate=(
+                    "<b>Année: %{x}</b><br>"
+                    "Couverture moyenne: %{y:.1f}%<br>"
+                    "Écart-type: %{customdata[0]:.1f}%<br>"
+                    "Nombre d'enregistrements: %{customdata[1]}<br>"
+                    "<extra></extra>"
+                ),
+                customdata=time_data[['std', 'count']].values,
+            ))
+        else:
+            fig.add_trace(go.Scatter(
+                x=time_data[time_column],
+                y=time_data[y_col],
+                mode='lines+markers',
+                line=dict(color=COLOR_PALETTE[0], width=3),
+                marker=dict(size=8),
+            ))
+        
+        fig.update_layout(
             title=title or default_title,
             template=PLOTLY_TEMPLATE,
-            color_discrete_sequence=COLOR_PALETTE,
-            markers=True,
         )
 
-    fig.update_layout(xaxis_title=time_column, yaxis_title=value_column, hovermode="x unified")
+    fig.update_layout(
+        xaxis_title=time_column,
+        yaxis_title=value_column if aggregation != "mean" else f"{value_column} moyen",
+        hovermode="x unified",
+    )
 
     return fig
