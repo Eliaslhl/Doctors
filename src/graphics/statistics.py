@@ -75,12 +75,14 @@ def create_statistics_histogram(
     std_val = data[column].std()
 
     fig = go.Figure(
-        data=[go.Histogram(
-            x=data[column],
-            nbinsx=nbins,
-            marker_color=COLOR_PALETTE[0],
-            hovertemplate="Intervalle: %{x}<br>Fréquence: %{y}<extra></extra>",
-        )]
+        data=[
+            go.Histogram(
+                x=data[column],
+                nbinsx=nbins,
+                marker_color=COLOR_PALETTE[0],
+                hovertemplate="Intervalle: %{x}<br>Fréquence: %{y}<extra></extra>",
+            )
+        ]
     )
 
     # Ajout des lignes de statistiques
@@ -149,7 +151,7 @@ def create_statistics_boxplot(
                     y=category_data,
                     name=str(category),
                     marker_color=COLOR_PALETTE[i % len(COLOR_PALETTE)],
-                    boxmean='sd',  # Affiche la moyenne et l'écart-type
+                    boxmean="sd",  # Affiche la moyenne et l'écart-type
                     hovertemplate=(
                         "<b>%{fullData.name}</b><br>"
                         "Maximum: %{y}<br>"
@@ -164,19 +166,23 @@ def create_statistics_boxplot(
         default_title = f"Statistiques de {column} par {group_by}"
     else:
         # Boxplot simple avec statistiques
-        fig = go.Figure(data=[go.Box(
-            y=data[column],
-            marker_color=COLOR_PALETTE[0],
-            boxmean='sd',
-            name=column,
-        )])
+        fig = go.Figure(
+            data=[
+                go.Box(
+                    y=data[column],
+                    marker_color=COLOR_PALETTE[0],
+                    boxmean="sd",
+                    name=column,
+                )
+            ]
+        )
         default_title = f"Statistiques descriptives - {column}"
 
     fig.update_layout(
         title=title or default_title,
         yaxis_title=column,
         template=PLOTLY_TEMPLATE,
-        showlegend=True if group_by else False,
+        showlegend=bool(group_by),
     )
 
     return fig

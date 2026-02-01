@@ -256,11 +256,11 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
                                                 id="graph-type-1",
                                                 options=[  # type: ignore
                                                     {
-                                                        "label": "📊 Histogram - Distribution des valeurs",
+                                                        "label": "📊 Histogram - Distribution",
                                                         "value": "histogram",
                                                     },
                                                     {
-                                                        "label": "📦 Boxplot - Quartiles et outliers",
+                                                        "label": "📦 Boxplot - Quartiles",
                                                         "value": "boxplot",
                                                     },
                                                 ],
@@ -327,11 +327,11 @@ def create_home_layout(data: pd.DataFrame) -> html.Div:
                                                 id="graph-type-2",
                                                 options=[  # type: ignore
                                                     {
-                                                        "label": "🥧 Pie Chart - Proportions par catégorie",
+                                                        "label": "🥧 Pie Chart - Proportions",
                                                         "value": "pie",
                                                     },
                                                     {
-                                                        "label": "🗺️ TreeMap - Hiérarchie détaillée",
+                                                        "label": "🗺️ TreeMap - Hiérarchie",
                                                         "value": "treemap",
                                                     },
                                                 ],
@@ -520,7 +520,7 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
     def update_stats(validated_filters: dict):
         """Met à jour les statistiques globales selon le filtre année validé."""
         year_filter = validated_filters.get("year", "all")
-        
+
         # Filtrer uniquement par année
         filtered_data = data if year_filter == "all" else data[data["YEAR"] == int(year_filter)]
 
@@ -541,7 +541,7 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
         country_filter = validated_filters.get("country", "all")
         antigen_filter = validated_filters.get("antigen", "all")
         category_filter = validated_filters.get("category", "all")
-        
+
         filtered_data = get_filtered_data(
             data=data,
             group=group_filter if group_filter != "all" else None,
@@ -576,7 +576,7 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
         country_filter = validated_filters.get("country", "all")
         antigen_filter = validated_filters.get("antigen", "all")
         category_filter = validated_filters.get("category", "all")
-        
+
         filtered_data = get_filtered_data(
             data=data,
             group=group_filter if group_filter != "all" else None,
@@ -610,7 +610,7 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
         country_filter = validated_filters.get("country", "all")
         antigen_filter = validated_filters.get("antigen", "all")
         category_filter = validated_filters.get("category", "all")
-        
+
         filtered_data = get_filtered_data(
             data=data,
             group=group_filter if group_filter != "all" else None,
@@ -647,7 +647,7 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
         country_filter = validated_filters.get("country", "all")
         antigen_filter = validated_filters.get("antigen", "all")
         category_filter = validated_filters.get("category", "all")
-        
+
         filtered_data = get_filtered_data(
             data=data,
             group=group_filter if group_filter != "all" else None,
@@ -698,7 +698,7 @@ def register_callbacks(app, data: pd.DataFrame) -> None:
         country_filter = validated_filters.get("country", "all")
         antigen_filter = validated_filters.get("antigen", "all")
         category_filter = validated_filters.get("category", "all")
-        
+
         filtered_data = get_filtered_data(
             data=data,
             group=group_filter if group_filter != "all" else None,

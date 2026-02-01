@@ -3,20 +3,41 @@ Module pour récupérer les données depuis différentes sources.
 Centralise toutes les fonctions de récupération de données.
 """
 
+from functools import lru_cache
 from pathlib import Path
 
 import pandas as pd
 
 
+@lru_cache(maxsize=2)
+def _load_csv_cached(file_path_str: str) -> pd.DataFrame:
+    """
+    Charge un fichier CSV avec mise en cache.
+
+    Args:
+        file_path_str: Chemin du fichier CSV (en string pour compatibilité cache)
+
+    Returns:
+        DataFrame chargé depuis le CSV
+    """
+    file_path = Path(file_path_str)
+    return pd.read_csv(file_path)
+
+
 def get_vaccination_data(use_cleaned: bool = True) -> pd.DataFrame:
     """
     Récupère les données de vaccination depuis le fichier CSV.
+    Les données sont mises en cache pour améliorer les performances.
 
     Args:
         use_cleaned: Si True, charge cleaneddata.csv, sinon rawdata.csv
 
     Returns:
         DataFrame avec les données de vaccination
+
+    Note:
+        Les données sont automatiquement mises en cache. Pour rafraîchir,
+        utilisez _load_csv_cached.cache_clear()
     """
     base_path = Path(__file__).parent.parent.parent / "data"
 
@@ -29,7 +50,7 @@ def get_vaccination_data(use_cleaned: bool = True) -> pd.DataFrame:
         raise FileNotFoundError(f"Fichier non trouvé: {file_path}")
 
     print(f"✓ Données chargées depuis {file_path} ", end="")
-    data = pd.read_csv(file_path)
+    data = _load_csv_cached(str(file_path))
     print(f"({len(data)} enregistrements)")
 
     return data
